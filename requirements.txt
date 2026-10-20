@@ -1,0 +1,2 @@
+# Only needed for live mode (python3 server.py --live). Mock mode uses the standard library.
+anthropic>=1.15

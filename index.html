@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rider Feedback Triage</title>
+<style>
+  :root { --bg:#f7f7f5; --card:#fff; --ink:#1c1c1c; --muted:#666; --line:#ddd;
+          --sev1:#b42318; --sev2:#b54708; --sev3:#175cd3; --sev4:#555; --sev5:#999; --flag:#fef0c7; --human:#e0f2fe; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#151515; --card:#1f1f1f; --ink:#eee; --muted:#aaa; --line:#333; --flag:#4a3b0a; --human:#0c3550; --sev4:#bbb; }
+  }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 system-ui, sans-serif; }
+  main { max-width:960px; margin:0 auto; padding:16px; }
+  h1 { font-size:22px; margin:8px 0 4px; } h2 { font-size:18px; margin:0 0 6px; } h3 { font-size:15px; margin:12px 0 4px; }
+  .muted { color:var(--muted); font-size:13px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px; margin:12px 0; }
+  .esc { border:2px solid var(--sev1); }
+  .badge { display:inline-block; font-size:12px; padding:1px 7px; border-radius:10px; border:1px solid currentColor; margin-right:4px; white-space:nowrap; }
+  .s1{color:var(--sev1)} .s2{color:var(--sev2)} .s3{color:var(--sev3)} .s4{color:var(--sev4)} .s5{color:var(--sev5)}
+  .flag { background:var(--flag); color:var(--ink); border-color:transparent; }
+  .human { background:var(--human); color:var(--ink); border-color:transparent; }
+  .msg { border-top:1px solid var(--line); padding:10px 0; }
+  .text { margin:4px 0; padding:6px 8px; border-left:3px solid var(--line); }
+  mark { background:var(--flag); color:inherit; }
+  .why { font-size:13px; } .why b { font-weight:600; }
+  details summary { cursor:pointer; }
+  form.ov { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; font-size:13px; }
+  form.ov input[name=note] { flex:1; min-width:180px; }
+  select, input, button, textarea { font:inherit; font-size:13px; }
+  textarea { width:100%; min-height:120px; box-sizing:border-box; }
+  pre { white-space:pre-wrap; font-size:12px; background:var(--bg); padding:8px; overflow-x:auto; }
+  .err { color:var(--sev1); font-weight:600; }
+  dl { margin:6px 0; } dt { font-weight:600; font-size:13px; margin-top:6px; } dd { margin:0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Rider feedback triage</h1>
+  <div id="status" class="muted">Loading…</div>
+  <div id="app"></div>
+
+  <div class="card">
+    <h2>Load a new batch</h2>
+    <p class="muted">Paste a CSV with the same columns as the export (id, created_at, channel, route, rider_id, star_rating, message), or pick a file.</p>
+    <input type="file" id="file" accept=".csv,text/csv">
+    <textarea id="csv" placeholder="id,created_at,channel,route,rider_id,star_rating,message"></textarea>
+    <button id="run">Triage this batch</button> <button id="reset">Back to the original batch</button>
+  </div>
+</main>
+
+<script>
+let data = null, lastCsv = null;
+const $ = s => document.querySelector(s);
+
+// Rider text is untrusted: build every node with textContent, never innerHTML.
+function el(tag, attrs = {}, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) k === "class" ? n.className = v : n.setAttribute(k, v);
+  for (const k of kids.flat()) if (k != null) n.append(k instanceof Node ? k : String(k));
+  return n;
+}
+const sevBadge = s => el("span", { class: "badge s" + (s || 4) }, s ? "Severity " + s : "No severity");
+
+function highlighted(text, quote) {
+  const i = quote ? text.indexOf(quote) : -1;
+  if (i < 0) return el("div", { class: "text" }, text);
+  return el("div", { class: "text" }, text.slice(0, i), el("mark", {}, quote), text.slice(i + quote.length));
+}
+
+function messageRow(m) {
+  const L = m.label, ML = m.model_label;
+  const badges = [sevBadge(L.severity), el("span", { class: "badge" }, L.code || "unlabelled")];
+  if (L.source === "human") badges.push(el("span", { class: "badge human" }, "Overridden by a human"));
+  if (m.token_flag) badges.push(el("span", { class: "badge flag", title: data.token_rule }, "Contains override token: not trusted, kept in triage"));
+  if (m.same_rider_as.length) badges.push(el("span", { class: "badge" }, "Same rider as " + m.same_rider_as.join(", ")));
+  if (ML.code && !m.evidence_found) badges.push(el("span", { class: "badge flag" }, "Quoted evidence not found in message: check this label"));
+
+  const why = el("div", { class: "why" },
+    el("div", {}, el("b", {}, ML.source === "model" ? "Model said: " : ML.source === "mock" ? "Mock label: " : "No label. "),
+       ML.code ? `${ML.code}, severity ${ML.severity}. ${ML.reason}` : ""),
+    L.source === "human" ? el("div", {}, el("b", {}, "Human override: "), `${L.code}, severity ${L.severity}. ${L.reason} (${L.at})`) : null);
+
+  const codeSel = el("select", { name: "code" }, Object.keys(data.codes).map(c => {
+    const o = el("option", { value: c }, c); if (c === L.code) o.selected = true; return o; }));
+  const sevSel = el("select", { name: "severity" }, [1, 2, 3, 4, 5].map(s => {
+    const o = el("option", { value: s }, "Severity " + s); if (s === L.severity) o.selected = true; return o; }));
+  const form = el("form", { class: "ov" }, codeSel, sevSel,
+    el("input", { name: "note", placeholder: "Why are you overriding? (required)" }), el("button", {}, "Override"));
+  form.onsubmit = async e => {
+    e.preventDefault();
+    const res = await post("/api/override", { batch: data.batch, id: m.id, code: codeSel.value,
+      severity: +sevSel.value, note: form.note.value });
+    if (res) load(lastCsv);
+  };
+
+  return el("div", { class: "msg" },
+    el("div", {}, el("b", {}, m.id), " · ", m.route || "no route", " · ", m.rider, " · ", m.channel,
+      m.stars ? ` · ${m.stars}★` : "", " · ", el("span", { class: "muted" }, m.created_at)),
+    el("div", {}, badges),
+    highlighted(m.text, m.evidence_found ? ML.evidence : null),
+    why, el("details", {}, el("summary", { class: "muted" }, "Change this label"), form));
+}
+
+function groupCard(g, isEsc) {
+  return el("div", { class: "card" + (isEsc ? " esc" : "") },
+    el("h2", {}, isEsc ? "Take upstairs at 11: " + g.title : g.title, " ", sevBadge(g.severity)),
+    el("div", { class: "muted" }, `${g.ids.length} message(s), ${g.riders} rider(s)`),
+    isEsc ? el("p", { class: "why" }, el("b", {}, "Why this one: "), data.rule) : null,
+    el("dl", {},
+      el("dt", {}, "Likely owner (confirm with Meera)"), el("dd", {}, g.owner),
+      el("dt", {}, "Fix"), el("dd", {}, g.fix),
+      el("dt", {}, isEsc ? "Cost of waiting" : "Cost of deferring to tomorrow, and who pays"), el("dd", {}, g.cost),
+      el("dt", {}, "Risk if left unchecked"), el("dd", {}, g.risk)),
+    el("details", isEsc ? { open: "" } : {}, el("summary", {}, "Messages"),
+      g.ids.map(id => messageRow(data.messages[id]))));
+}
+
+function render() {
+  const app = $("#app"); app.replaceChildren();
+  $("#status").replaceChildren(
+    el("span", { class: "badge " + (data.mode === "live" ? "s3" : "flag") },
+      data.mode === "live" ? "LIVE: labels from " + data.model : "MOCK: labels from data/labels.json, no model call"),
+    ` Batch ${data.batch} · ${Object.keys(data.messages).length} messages`);
+  if (data.escalation) app.append(groupCard(data.escalation, true));
+  else app.append(el("div", { class: "card" }, "Nothing to escalate in this batch."));
+  app.append(el("h3", {}, "Deferred to tomorrow"));
+  data.groups.forEach(g => app.append(groupCard(g, false)));
+  app.append(el("div", { class: "card" }, el("details", {},
+    el("summary", {}, data.mode === "live" ? "Prompt sent to the model" : "Prompt the model would be sent (mock mode)"),
+    el("p", { class: "muted" }, "Rider ids are never sent. Masked handles change each run."),
+    el("pre", {}, data.prompt.system), el("pre", {}, data.prompt.user))));
+}
+
+async function post(url, body) {
+  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const j = await r.json();
+  if (!r.ok) { $("#status").replaceChildren(el("span", { class: "err" }, j.error)); return null; }
+  return j;
+}
+
+async function load(csv) {
+  $("#status").textContent = csv ? "Triaging…" : "Loading…";
+  let j;
+  if (csv) j = await post("/api/triage", { csv });
+  else { const r = await fetch("/api/triage"); j = await r.json(); if (!r.ok) { $("#status").replaceChildren(el("span", { class: "err" }, j.error)); j = null; } }
+  if (j) { data = j; lastCsv = csv; render(); }
+}
+
+$("#file").onchange = async e => { const f = e.target.files[0]; if (f) $("#csv").value = await f.text(); };
+$("#run").onclick = () => $("#csv").value.trim() && load($("#csv").value);
+$("#reset").onclick = () => load(null);
+load(null);
+</script>
+</body>
+</html>

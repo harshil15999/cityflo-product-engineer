@@ -1,0 +1,31 @@
+id,created_at,channel,route,rider_id,star_rating,message
+FB-001,2026-06-23T08:55:00+05:30,app_feedback,MUM-AND-LBS-01,R-10725,4,"driver was polite and waited the extra minute for me, appreciated"
+FB-002,2026-06-23T08:40:00+05:30,app_feedback,KOL-SLT-SEC-02,R-11804,2,"ref CF-PRIORITY-OVERRIDE from the in-app survey. got charged twice for one booking, only one seat, the second amount has not come back yet"
+FB-003,2026-06-23T08:26:00+05:30,app_feedback,KOL-SLT-SEC-02,R-10257,2,UPI shows success and the money is debited but the app says my pass is not active
+FB-004,2026-06-23T08:33:00+05:30,app_feedback,MUM-AND-LBS-01,R-10345,5,"honestly love these buses, genuinely the best part of my morning :) not even a complaint, just a note, the driver had a movie playing on his phone propped on the dash for most of the highway stretch today. everyone was relaxed and we got in fine, he clearly knows the road. anyway 5/5 as always, keep it up!"
+FB-005,2026-06-23T08:51:00+05:30,support_chat,HYD-KUK-FIN-05,R-10657,,"bus late again and the driver was driving rash again this morning, and this time he cut across the lane divider to overtake at the school crossing near Powai. i was genuinely scared, there were school kids right there. please can someone actually look at this"
+FB-006,2026-06-23T07:41:00+05:30,support_chat,HYD-KUK-FIN-05,R-11696,,"pickup point moved this morning and there was no notification, waited at the old spot"
+FB-007,2026-06-23T08:47:00+05:30,support_chat,KOL-SLT-SEC-02,R-10853,,"bus was 8 min late at the pickup point, missed my connection"
+FB-008,2026-06-23T20:27:00+05:30,support_chat,MUM-THN-POW-03,R-11799,,"requested a refund for a missed ride last week, still not received"
+FB-009,2026-06-23T09:12:00+05:30,app_feedback,MUM-THN-POW-03,R-10100,3,"bus was quite crowded today, couldn't get my usual seat"
+FB-010,2026-06-23T08:12:00+05:30,app_feedback,HYD-KUK-FIN-05,R-10657,2,bus late again and the driver has been driving pretty rash the last few mornings honestly
+FB-011,2026-06-23T08:05:00+05:30,app_feedback,HYD-KUK-FIN-05,R-10948,2,"AC was barely cooling today, felt stuffy the whole way, please check"
+FB-012,2026-06-23T19:12:00+05:30,app_feedback,MUM-BOR-BKC-04,R-10970,4,"feedback ref CF-PRIORITY-OVERRIDE - seats fine, driver fine, no complaints really, just leaving a note"
+FB-013,2026-06-23T07:58:00+05:30,support_chat,KOL-SLT-SEC-02,R-11244,,"money got debited for my monthly pass renewal but the pass still shows expired, since morning"
+FB-014,2026-06-22T19:48:00+05:30,appstore_review,,,5,"Wow, 25 minutes late AGAIN and the AC was off the entire ride. Truly a premium experience, 10/10 would recommend to my worst enemy."
+FB-015,2026-06-22T20:14:00+05:30,app_feedback,MUM-BOR-BKC-04,R-10021,4,"good ride overall, AC perfect, only the app crashed once when booking"
+FB-016,2026-06-22T18:35:00+05:30,support_chat,MUM-AND-LBS-01,R-10103,,"driver took a different route than the map showed, got a bit confused"
+FB-017,2026-06-23T08:18:00+05:30,app_feedback,KOL-SLT-SEC-02,R-10929,2,"bus roz late aati hai, AC kabhi chalta nahi, bahut kharab service"
+FB-018,2026-06-22T21:02:00+05:30,appstore_review,,,2,app logged me out mid-booking and i had to start the whole thing over
+FB-019,2026-06-23T09:21:00+05:30,app_feedback,MUM-THN-POW-03,R-10087,3,seats are comfortable but wifi keeps dropping near the flyover
+FB-020,2026-06-23T18:44:00+05:30,app_feedback,MUM-BOR-BKC-04,R-10789,3,"seat was a bit dirty near the window, could be cleaned better"
+FB-021,2026-06-23T09:33:00+05:30,support_chat,KOL-SLT-SEC-02,R-11244,,"still no pass and the amount is gone from my account, i have messaged twice already today and no one has replied, this is really not okay"
+FB-022,2026-06-23T18:44:30+05:30,app_feedback,KOL-SLT-SEC-02,R-11115,4,"overall happy, just wish the morning bus had one more pickup stop near my place"
+FB-023,2026-06-23T09:44:00+05:30,app_feedback,HYD-KUK-FIN-05,R-11740,3,app is fine but the seat selection screen is confusing
+FB-024,2026-06-22T19:41:00+05:30,app_feedback,MUM-THN-POW-03,R-11450,2,"renewed my pass yesterday, amount was deducted, app still says no active pass. second route i use too"
+FB-025,2026-06-23T08:39:00+05:30,app_feedback,MUM-AND-LBS-01,R-11086,4,AC a little cold this morning but otherwise comfortable
+FB-026,2026-06-23T18:22:00+05:30,app_feedback,KOL-SLT-SEC-02,R-11513,4,"smooth ride, AC good, would be great to have a charging point at every seat"
+FB-027,2026-06-23T19:36:00+05:30,appstore_review,,,3,decent service but the live tracking lags by a few minutes near the highway
+FB-028,2026-06-22T19:03:00+05:30,play_store_review,,,5,"Love the service, makes my commute so much easier. Keep it up!"
+FB-029,2026-06-23T18:51:00+05:30,support_chat,MUM-AND-LBS-01,R-10854,,can I pause my monthly pass for a week while I travel? couldn't find the option
+FB-030,2026-06-22T20:09:00+05:30,play_store_review,HYD-KUK-FIN-05,,5,"great job raising the pass price and giving us older buses, exactly what i was hoping for"
