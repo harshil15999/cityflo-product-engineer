@@ -344,4 +344,13 @@ assert json.loads(server.OVERRIDES.read_text().splitlines()[-1])["event"] == "OV
 # Prompts and payload never carry a raw rider id, with event codes added.
 assert not re.search(r"R-1\d{4}", json.dumps(r7) + r7["prompt"]["system"] + r7["prompt"]["user"]), "raw rider_id leaked"
 
+# Usage analytics: off without ANALYTICS_URL, and only a local http(s) GoatCounter is accepted.
+import os
+os.environ.pop("ANALYTICS_URL", None)
+assert server.analytics_url() is None
+assert server.analytics_url("http://127.0.0.1:8081/") == "http://127.0.0.1:8081"
+for bad in ("https://stats.example.com", "http://10.0.0.5:8081", "ftp://127.0.0.1", "http://127.0.0.1:8081/x?a=1",
+            "http://user:pw@127.0.0.1:8081", "http://127.0.0.1.evil.com", "http://127.0.0.1:99999"):
+    assert server.analytics_url(bad) is None, bad
+
 print("all checks passed")

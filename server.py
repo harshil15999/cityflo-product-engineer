@@ -675,6 +675,25 @@ def save_cost_override(body):
         f.write(json.dumps(rec, ensure_ascii=False) + "\n")
 
 
+def analytics_url(raw=None):
+    """Optional self-hosted GoatCounter (ANALYTICS_URL). Only http(s) on this machine; anything else is off."""
+    from urllib.parse import urlsplit
+    raw = (os.environ.get("ANALYTICS_URL", "") if raw is None else raw).strip()
+    if not raw:
+        return None
+    try:
+        u = urlsplit(raw)
+        u.port  # raises ValueError on a bad port
+        ok = u.scheme in ("http", "https") and u.hostname in ("127.0.0.1", "localhost") \
+            and not (u.username or u.password or u.query or u.fragment) and u.path in ("", "/")
+    except ValueError:
+        ok = False
+    if not ok:
+        print(f"ANALYTICS_URL ignored: must be http(s)://127.0.0.1:<port> or localhost, got {raw!r}", file=sys.stderr)
+        return None
+    return raw.rstrip("/")
+
+
 class Handler(BaseHTTPRequestHandler):
     def send(self, code, body, ctype="application/json"):
         data = body if isinstance(body, bytes) else json.dumps(body, ensure_ascii=False).encode()
@@ -690,6 +709,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send(200, (ROOT / "index.html").read_bytes(), "text/html")
         elif path == "/api/triage":
             self.run(DEFAULT_CSV.read_text(encoding="utf-8"))
+        elif path == "/api/config":
+            self.send(200, {"analytics_url": analytics_url()})
         else:
             self.send(404, {"error": "not found"})
 
