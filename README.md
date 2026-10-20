@@ -4,7 +4,6 @@ A one-page tool that triages a batch of rider feedback (`data/feedback.csv`, 30 
 
 **Start here:**
 - [MEMO.md](MEMO.md): the memo to Meera — the one thing to escalate, the decision records, what's deferred and what it costs, what's cut.
-- [docs/walkthrough.mp4](docs/walkthrough.mp4): a short captioned tour of the dashboard (mock data, no audio).
 - [decisions.jsonl](decisions.jsonl): the steering ledger. Each line quotes a message the candidate typed and anchors it in the raw session transcript as `turn N (transcript line L)`: N counts only the candidate's typed prompts in order (not tool results or task notifications), and L is the line in the raw `.jsonl` transcript. A few decisions were typed while the agent was mid-task; those are anchored as `message sent mid-turn (transcript line L)`.
 
 ## Run it (mock mode, no setup)
@@ -144,4 +143,3 @@ This was not deployed. If a public link is wanted, the cheapest options are a fr
 - `data/labels.json`: codes, event-code axes and validity tables, group write-ups (owner, fix, cost, who pays, risk; the cost text is also the fallback) and the mock labels.
 - `MEMO.md`: the memo to Meera.
 - `decisions.jsonl`: the steering ledger (decisions anchored to the raw transcript).
-- `docs/walkthrough.mp4`: the captioned walkthrough video.
