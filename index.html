@@ -91,6 +91,17 @@ button { cursor:pointer; }
 .groups button:hover { background:var(--panel2); }
 .groups button[aria-current="true"] { background:var(--sel); font-weight:650; }
 .groups .n { margin-left:auto; color:var(--muted); font-size:13px; font-variant-numeric:tabular-nums; }
+.groups .glabel { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); padding:0 10px; margin:6px 0 2px; }
+.groups .glabel.sep { margin-top:12px; padding-top:12px; border-top:1px solid var(--line); }
+.groups .tri { margin-bottom:4px; }
+.groups .tri .dot { display:none; }
+.groups .tri button { font-weight:650; border-left:4px solid var(--tc); background:var(--tbg); border-radius:4px 8px 8px 4px; padding:9px 10px; }
+.groups .tri button:hover { filter:brightness(0.97); background:var(--tbg); }
+.groups .tri button[aria-current="true"] { box-shadow:inset 0 0 0 2px var(--tc); font-weight:750; }
+.groups .tri .n { color:var(--tc); background:var(--panel); border:1px solid currentColor; border-radius:999px; padding:0 8px; font-weight:700; min-width:28px; text-align:center; }
+.groups .tri.t1 { --tc:var(--s1); --tbg:var(--s1bg); }
+.groups .tri.t2 { --tc:var(--s2); --tbg:var(--s2bg); }
+.groups .tri.t4 { --tc:var(--s4); --tbg:var(--s4bg); }
 .dot { width:10px; height:10px; border-radius:50%; flex:none; background:var(--s4); }
 .d1{background:var(--s1)} .d2{background:var(--s2)} .d3{background:var(--s3)} .d4{background:var(--s4)} .d5{background:var(--s5)}
 
@@ -531,10 +542,13 @@ function renderNav() {
   put($("#route"), el("option", { value: "" }, "All routes"),
     ...routes.map(r => el("option", { value: r, selected: r === S.f.route }, r)));
   const v = virtualGroups(), gs = groups(), esc = gs.filter(g => g.key === "esc");
-  const items = [v[0], ...esc, v[1], v[2], ...gs.filter(g => g.key !== "esc")];
-  put($("#groups"), ...items.map(g => el("li", {}, el("button", {
+  const item = (g, cls) => el("li", cls ? { class: cls } : {}, el("button", {
     "aria-current": String(g.key === S.group), onclick: () => select(g.key)
-  }, el("span", { class: "dot d" + (g.severity || 4) }), g.label, el("span", { class: "n" }, filtered(g.ids).length)))));
+  }, el("span", { class: "dot d" + (g.severity || 4) }), g.label, el("span", { class: "n" }, filtered(g.ids).length)));
+  const lbl = (t, cls) => el("li", { class: "glabel" + (cls ? " " + cls : ""), role: "presentation" }, t);
+  put($("#groups"), item(v[0]), lbl("Triage", "sep"),
+    ...esc.map(g => item(g, "tri t1")), item(v[1], "tri t2"), item(v[2], "tri t4"),
+    lbl("By issue", "sep"), ...gs.filter(g => g.key !== "esc").map(g => item(g)));
 }
 
 function renderGroupInfo() {
