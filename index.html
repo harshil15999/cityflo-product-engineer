@@ -4,13 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rider Feedback Triage</title>
+<link rel="icon" href="data:,">
 <style>
 :root {
   --bg:#f3f4f6; --panel:#ffffff; --panel2:#f8f9fb; --ink:#14171c; --muted:#5a6170; --line:#e1e4ea;
   --accent:#2c56c9; --accent-ink:#ffffff; --sel:#eaf0ff;
   --s1:#b91c22; --s1bg:#fdeced; --s2:#a85a06; --s2bg:#fff3e2; --s3:#1d4fd0; --s3bg:#e9f0ff;
   --s4:#4a5160; --s4bg:#eef0f3; --s5:#868c97; --s5bg:#f4f5f7;
-  --mark:#ffe17a; --flag:#fff1c2; --human:#dcf1ff; --ok:#147a3d; --okbg:#e3f4e9;
+  --mark:#ffe17a; --mark2:#fff6d1; --flag:#fff1c2; --human:#dcf1ff; --ok:#147a3d; --okbg:#e3f4e9;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -18,7 +19,7 @@
     --accent:#6f93ff; --accent-ink:#0e1014; --sel:#1d2945;
     --s1:#ff6b70; --s1bg:#3b1618; --s2:#f2a33a; --s2bg:#3a2810; --s3:#82a6ff; --s3bg:#172240;
     --s4:#b9bfca; --s4bg:#232831; --s5:#8a909b; --s5bg:#1c2027;
-    --mark:#6e5a10; --flag:#45380c; --human:#103449; --ok:#5fd18b; --okbg:#123322;
+    --mark:#6e5a10; --mark2:#3a3216; --flag:#45380c; --human:#103449; --ok:#5fd18b; --okbg:#123322;
   }
 }
 :root[data-theme="dark"] {
@@ -26,7 +27,7 @@
   --accent:#6f93ff; --accent-ink:#0e1014; --sel:#1d2945;
   --s1:#ff6b70; --s1bg:#3b1618; --s2:#f2a33a; --s2bg:#3a2810; --s3:#82a6ff; --s3bg:#172240;
   --s4:#b9bfca; --s4bg:#232831; --s5:#8a909b; --s5bg:#1c2027;
-  --mark:#6e5a10; --flag:#45380c; --human:#103449; --ok:#5fd18b; --okbg:#123322;
+  --mark:#6e5a10; --mark2:#3a3216; --flag:#45380c; --human:#103449; --ok:#5fd18b; --okbg:#123322;
 }
 * { box-sizing:border-box; }
 body { margin:0; background:var(--bg); color:var(--ink);
@@ -138,6 +139,33 @@ button { cursor:pointer; }
 .detail .sub { color:var(--muted); font-size:14px; margin:2px 0 10px; }
 .quote { font-size:18px; line-height:1.65; margin:12px 0 14px; padding:12px 16px; background:var(--panel2); border-left:4px solid var(--line); border-radius:6px; max-width:70ch; }
 mark { background:var(--mark); color:inherit; padding:0 2px; border-radius:3px; }
+mark.m2 { background:var(--mark2); border-bottom:2px dotted var(--s2); }
+/* Coding: primary tag, then +secondary tags, then modifier badges (dotted = derived by code, not the model). */
+.codes { display:inline-flex; flex-wrap:wrap; align-items:center; gap:4px 5px; vertical-align:middle; }
+.tag.sectag { background:transparent; color:var(--muted); font-weight:600; }
+.mod { display:inline-block; font-size:11px; font-weight:750; line-height:1.4; padding:0 4px; border-radius:4px;
+  border:1px solid var(--muted); color:var(--muted); letter-spacing:.03em; white-space:nowrap; }
+.mod.derived { border-style:dotted; }
+.coding { margin:12px 0; padding:10px 12px; border-radius:8px; background:var(--panel2); font-size:14.5px; }
+.coding > small { display:block; font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:4px; }
+.coding dl { display:grid; grid-template-columns:96px minmax(0, 1fr); gap:6px 10px; margin:0; }
+.coding dt { color:var(--muted); font-weight:600; }
+.coding dd { margin:0; display:grid; gap:4px; }
+.coding .cq { color:var(--muted); font-style:italic; overflow-wrap:anywhere; }
+.coding .meta { font-size:13.5px; margin-top:6px; }
+.coding ul { margin:2px 0 0; padding-left:1.15em; }
+.groups .also { color:var(--muted); font-size:12px; white-space:nowrap; }
+.groups .aonly button { color:var(--muted); font-size:14px; }
+.ov fieldset { grid-column:1 / -1; border:1px solid var(--line); border-radius:8px; padding:6px 10px 8px; margin:0; min-width:0; }
+.ov legend { font-size:13px; font-weight:700; color:var(--muted); padding:0 4px; }
+.ov .boxes { display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:2px 10px; font-size:13.5px; max-height:220px; overflow:auto; }
+.ov .boxes label { display:flex; gap:6px; align-items:baseline; min-width:0; }
+.ov .boxes label span { overflow-wrap:anywhere; }
+.ov .boxes label.off { color:var(--muted); }
+.ov fieldset .hint { margin:4px 0 0; }
+dialog ol.rules { padding-left:1.4em; display:grid; gap:4px; }
+dialog dl.legend { display:grid; grid-template-columns:auto 1fr; gap:6px 12px; align-items:baseline; }
+dialog dl.legend dd { margin:0; }
 .trace { display:grid; gap:10px; margin:14px 0; }
 .trace div { padding:10px 12px; border-radius:8px; background:var(--panel2); font-size:15px; }
 .trace .h { background:var(--human); }
@@ -238,6 +266,7 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
   .work { grid-template-columns:260px minmax(0, 1fr); }
   .work > .detailcol { grid-column:1 / -1; position:relative; z-index:1; } /* paint over the sticky nav when it overhangs */
   .detailcol .sticky { position:static; max-height:none; }
+  .nav.sticky { position:static; max-height:none; } /* the ticket panel sits below; a sticky nav would get covered */
 }
 @media (max-width: 900px) {
   .today, .good { grid-template-columns:1fr; }
@@ -260,6 +289,7 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
   </div>
   <button class="btn" id="bBatch">Load batch</button>
   <button class="btn" id="bPrompt">Model prompt</button>
+  <button class="btn" id="bRules">Coding rules</button>
   <button class="btn" id="bPrint">Print report</button>
   <button class="btn" id="bTheme" aria-label="Toggle light or dark theme">Theme</button>
 </header>
@@ -318,6 +348,15 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
   <pre id="pCostSys"></pre><pre id="pCostUser"></pre>
   <form method="dialog"><button class="btn">Close</button></form>
 </dialog>
+<dialog id="dRules">
+  <h2 style="margin-top:0">Coding rules</h2>
+  <p class="meta">Each message gets one primary code (the issue needing action soonest), up to three secondary codes and any modifiers. Messages are grouped by the primary code.</p>
+  <ol class="rules" id="rulesList"></ol>
+  <h3>Modifiers</h3>
+  <p class="meta">Context, not issues. Solid border: chosen by the model (or a human). Dotted border: set by code from the batch.</p>
+  <dl class="legend" id="modLegend"></dl>
+  <form method="dialog"><button class="btn">Close</button></form>
+</dialog>
 <dialog id="dBatch">
   <h2 style="margin-top:0">Load a new batch</h2>
   <p class="meta">Same columns as the export: id, created_at, channel, route, rider_id, star_rating, message.</p>
@@ -359,6 +398,22 @@ const riders = ms => new Set(ms.map(m => m.rider === "anonymous" ? m.id : m.ride
 const codeMeans = c => c && S.data.codes[c] ? S.data.codes[c].desc.split(" Ref:")[0].split(/, (?:such as|including) /)[0].trim().replace(/\.$/, "") : null;
 const codeTag = c => el("span", { class: "tag", title: codeMeans(c) }, c || "unlabelled");
 const needsCheck = m => !m.label.code || (m.model_label.code && !m.evidence_found);
+// Multi-label coding: primary (solid), up to 3 secondary (+CODE, outlined), then modifiers (context, not issues).
+const DERIVED_MODS = new Set(["RP", "TK", "PR"]);  // set by code from the batch, never by the model
+const modelMods = () => Object.keys(S.data.modifiers || {}).filter(k => !DERIVED_MODS.has(k));
+const secCodes = L => (L.secondary || []).map(s => s.code);
+const secTag = c => el("span", { class: "tag sectag", title: "Secondary: " + (codeMeans(c) || c) }, "+" + c);
+const modMeans = k => `${(S.data.modifiers || {})[k] || k} (${DERIVED_MODS.has(k) ? "set by code" : "from the model"})`;
+const modTag = k => el("span", { class: "mod" + (DERIVED_MODS.has(k) ? " derived" : ""), title: modMeans(k) }, k);
+const codeTags = m => el("span", { class: "codes" }, codeTag(m.label.code), secCodes(m.label).map(secTag), (m.modifiers || []).map(modTag));
+const codeText = L => [L.code || "unlabelled", ...secCodes(L).map(c => "+" + c)].join(" ");
+// The quote behind a code: the model's own quote for that code (also shown under a human override), else the label's.
+function quoteFor(m, c) {
+  const ML = m.model_label;
+  if (c && c === ML.code) return m.evidence_found ? ML.evidence : "";
+  const s = (ML.secondary || []).find(x => x.code === c) || (m.label.secondary || []).find(x => x.code === c);
+  return s && s.evidence && m.text.includes(s.evidence) ? s.evidence : "";
+}
 
 // Long prose reads as bullets: one sentence (or "; " clause) per bullet. Never splits after e.g./i.e. etc.
 function sentences(t) {
@@ -385,10 +440,16 @@ function costMeta(g, go) {
     el("span", { class: "tag src links" + (src === "human" ? " human" : ""), title: src === "human" && g.model_cost ? "Model/mock said: " + g.model_cost.cost : null }, label));
 }
 
-function highlighted(text, quote) {
-  const i = quote ? text.indexOf(quote) : -1;
-  if (i < 0) return [text];
-  return [text.slice(0, i), el("mark", {}, quote), text.slice(i + quote.length)];
+// Highlight every quote found in the text: [{ q, cls }]. Overlapping quotes keep the earlier one.
+function highlighted(text, quotes) {
+  const hits = quotes.filter(x => x.q).map(x => [text.indexOf(x.q), x.q.length, x.cls]).filter(h => h[0] >= 0).sort((a, b) => a[0] - b[0]);
+  const out = []; let pos = 0;
+  for (const [i, len, cls] of hits) {
+    if (i < pos) continue;
+    out.push(text.slice(pos, i), el("mark", { class: cls }, text.slice(i, i + len))); pos = i + len;
+  }
+  out.push(text.slice(pos));
+  return out;
 }
 
 /* ---------- data ---------- */
@@ -433,12 +494,16 @@ function virtualGroups() {
       ids: all.filter(needsCheck).map(m => m.id), desc: "Unlabelled messages, or labels whose quoted evidence isn't in the message text." },
   ];
 }
+// Groups named only by secondary codes: no primary ticket, so they open the tickets that also mention them.
+const alsoGroups = () => (S.data.secondary_only || []).map(g => Object.assign({}, g, { key: "also:" + g.key, label: g.title,
+  ids: g.also_ids || [], alsoOnly: true, severity: 4 }));
 const KEY_ALIAS = { messages: "all", riders: "all" };
-const groupOf = k => { k = KEY_ALIAS[k] || k; return virtualGroups().find(g => g.key === k) || groups().find(g => g.key === k); };
+const groupOf = k => { k = KEY_ALIAS[k] || k;
+  return virtualGroups().find(g => g.key === k) || groups().find(g => g.key === k) || alsoGroups().find(g => g.key === k); };
 
 // Each filter: is it active, and does message m pass it? (filtered() and jump() share these.)
 const FILTERS = {
-  q: [f => f.q.trim(), (m, f) => [m.id, m.text, m.route, m.label.code || ""].join(" ").toLowerCase().includes(f.q.trim().toLowerCase())],
+  q: [f => f.q.trim(), (m, f) => [m.id, m.text, m.route, m.label.code || "", ...secCodes(m.label), ...(m.modifiers || [])].join(" ").toLowerCase().includes(f.q.trim().toLowerCase())],
   sev: [f => f.sev.size, (m, f) => f.sev.has(m.label.severity || 0)],
   route: [f => f.route, (m, f) => (m.route || "(none)") === f.route],
   token: [f => f.token, m => m.token_flag],
@@ -492,7 +557,8 @@ function todayCard(g, key, kicker) {
   return el("button", { class: "tcard " + (key === "esc" ? "esc" : "act"), onclick: () => { select(key); $("#list").scrollIntoView({ behavior: "smooth", block: "start" }); } },
     el("div", { class: "kicker" }, kicker),
     el("h3", {}, g.title),
-    el("div", { class: "who" }, `${g.ids.length} messages · ${g.riders} riders · owner: ${g.owner || "unassigned"}`),
+    el("div", { class: "who" }, `${g.ids.length} messages · ${g.riders} riders · owner: ${g.owner || "unassigned"}`,
+      (g.also_ids || []).length ? ` · +${g.also_ids.length} also mentioned` : ""),
     bullets(g.fix, 2));
 }
 
@@ -515,6 +581,10 @@ function renderGood() {
       dv.quote ? el("div", {}, "“" + dv.quote + "”") : null, el("div", { class: "why" }, dv.why)))) : el("div", { class: "meta" }, "No driver compliments in this batch."),
     routes.length ? [el("h3", { style: "margin-top:14px" }, "Routes with praise"),
       el("ul", { style: "gap:2px" }, routes.map(([r, ids]) => el("li", {}, el("b", {}, r), ` · ${ids.length} `, "(", idLinks(ids, goList), ")")))] : null,
+    // Only eligible praise counts for a route; the rest is listed so nothing silently disappears.
+    (w.routes_excluded || []).length ? el("div", { class: "meta excluded", style: "margin-top:8px; font-size:13.5px" }, "Not counted",
+      el("ul", { style: "gap:2px; margin-top:2px" }, w.routes_excluded.map(x => el("li", { class: "why" },
+        el("button", { type: "button", onclick: () => jump(x.id) }, x.id), ` · ${x.route || "no route"} · ${x.reason}`)))) : null,
     el("p", { class: "meta", style: "margin:12px 0 0; font-size:13.5px" }, "Driver and bus ids aren't in the export, so compliments are tied to a route and trip; the trip record names the driver."));
   const watch = el("div", { class: "panel links" }, el("h3", {}, "Watch list"),
     w.turned.length ? el("ul", {}, w.turned.map(t => el("li", {}, "Praised in ", el("button", { type: "button", onclick: () => goList(t.praised) }, t.praised),
@@ -522,7 +592,7 @@ function renderGood() {
       : el("div", { class: "meta" }, "Nobody in this sheet praised us earlier and complained later. To catch this across days, we need to recognise the same rider in each new export without storing who they are (on the to-do list)."),
     el("h3", { style: "margin-top:14px" }, "Happy riders with a complaint"),
     w.mixed.length ? el("ul", { style: "gap:2px" }, w.mixed.map(id => el("li", {}, el("button", { type: "button", onclick: () => goList(id) }, id), " ",
-      pill(M(id).label.severity), " ", codeTag(M(id).label.code)))) : el("div", { class: "meta" }, "None in this batch."));
+      pill(M(id).label.severity), " ", codeTags(M(id))))) : el("div", { class: "meta" }, "None in this batch."));
   put($("#good"), praise, drivers, watch);
 }
 function dateRange(ms) {
@@ -544,11 +614,20 @@ function renderNav() {
   const v = virtualGroups(), gs = groups(), esc = gs.filter(g => g.key === "esc");
   const item = (g, cls) => el("li", cls ? { class: cls } : {}, el("button", {
     "aria-current": String(g.key === S.group), onclick: () => select(g.key)
-  }, el("span", { class: "dot d" + (g.severity || 4) }), g.label, el("span", { class: "n" }, filtered(g.ids).length)));
+  }, el("span", { class: "dot d" + (g.severity || 4) }), g.label,
+    // Counts stay primary-only; "+N" = tickets grouped elsewhere that also mention this issue as a secondary code.
+    (g.also_ids || []).length && !g.alsoOnly ? el("span", { class: "also", title: `Also mentioned in ${g.also_ids.length} other tickets (not counted)`,
+      style: "margin-left:auto" }, `+${g.also_ids.length} also`) : null,
+    el("span", { class: "n", style: (g.also_ids || []).length && !g.alsoOnly ? "margin-left:0" : null }, filtered(g.ids).length)));
   const lbl = (t, cls) => el("li", { class: "glabel" + (cls ? " " + cls : ""), role: "presentation" }, t);
+  const aonly = g =>el("li", { class: "aonly" }, el("button", {
+    "aria-current": String(g.key === S.group), onclick: () => select(g.key), title: "Mentioned only as a secondary code: no ticket has it as primary"
+  }, el("span", { class: "dot d5" }), `${g.label} · also ${g.ids.length}`));
+  const ag = alsoGroups();
   put($("#groups"), item(v[0]), lbl("Triage", "sep"),
     ...esc.map(g => item(g, "tri t1")), item(v[1], "tri t2"), item(v[2], "tri t4"),
-    lbl("By issue", "sep"), ...gs.filter(g => g.key !== "esc").map(g => item(g)));
+    lbl("By issue", "sep"), ...gs.filter(g => g.key !== "esc").map(g => item(g)),
+    ag.length ? [lbl("Only as a secondary code", "sep"), ag.map(aonly)] : null);
 }
 
 function renderGroupInfo() {
@@ -562,6 +641,14 @@ function renderGroupInfo() {
           el("button", { type: "button", class: "btn", style: "margin-top:6px", onclick: open(a.key) }, "Open this group"))])));
     return;
   }
+  if (g.alsoOnly) {
+    put(box, el("div", { class: "kicker", style: "color:var(--muted)" }, "Only mentioned as a secondary code"),
+      el("h2", {}, g.title), el("div", { class: "meta" }, `${g.ids.length} ticket${g.ids.length === 1 ? "" : "s"} also mention${g.ids.length === 1 ? "s" : ""} this; each is grouped under its primary issue.`),
+      el("dl", {}, el("dt", {}, "Also mentioned in"), el("dd", { class: "links" }, idLinks(g.ids, jump)),
+        el("dt", {}, "Owner"), el("dd", {}, (g.owner || "Unassigned") + " (confirm with Meera)"),
+        el("dt", {}, "Fix"), el("dd", {}, bullets(g.fix))));
+    return;
+  }
   if (g.key === "all" || g.virtual) {
     put(box, el("h2", {}, g.title), el("div", { class: "meta" }, `${g.ids.length} messages · ${g.desc}`));
     return;
@@ -571,6 +658,8 @@ function renderGroupInfo() {
     el("div", { class: "kicker", style: `color:var(--${isEsc ? "s1" : "muted"})` }, isEsc ? "Take upstairs at 11" : "Deferred group"),
     el("h2", {}, g.title, " ", pill(g.severity)),
     el("div", { class: "meta" }, `${g.ids.length} messages · ${g.riders} riders`),
+    (g.also_ids || []).length ? el("div", { class: "meta links also-in" }, `Also mentioned in ${g.also_ids.length} other ticket${g.also_ids.length > 1 ? "s" : ""}: `,
+      idLinks(g.also_ids, jump), " (secondary code; not counted above)") : null,
     el("dl", {},
       isEsc ? [el("dt", {}, "Why this one"), el("dd", {}, bullets(S.data.rule))] : null,
       el("dt", {}, "Owner"), el("dd", {}, (g.owner || "Unassigned") + " (confirm with Meera)"),
@@ -602,7 +691,7 @@ function renderList() {
     class: "item", role: "option", "aria-current": String(m.id === S.msg), "data-id": m.id,
     onclick: () => { S.msg = m.id; renderList(); renderDetail(); setHash(); }
   },
-    el("div", { class: "row" }, el("b", {}, m.id), pill(m.label.severity), codeTag(m.label.code),
+    el("div", { class: "row" }, el("b", {}, m.id), pill(m.label.severity), codeTags(m),
       m.route || "no route", m.stars ? `· ${m.stars}★` : "",
       m.token_flag ? el("span", { class: "tag flag" }, "token") : null,
       m.label.source === "human" ? el("span", { class: "tag human" }, "overridden") : null,
@@ -619,28 +708,69 @@ function renderDetail() {
   const code = el("select", { "aria-label": "Code", onchange: () => showHint() }, codes.map(c => el("option", { value: c, selected: c === L.code }, `${c} — ${codeMeans(c)}`)));
   const sev = el("select", { "aria-label": "Severity", onchange: () => showHint() }, [1, 2, 3, 4, 5].map(s => el("option", { value: s, selected: s === L.severity }, `S${s} · ${SEV[s]}`)));
   showHint();
+  // Secondary codes: never the primary, never SAF-* (safety goes first) or NONE (stands alone); at most 3.
+  const secBoxes = codes.map(c => el("input", { type: "checkbox", value: c, checked: secCodes(L).includes(c) }));
+  const secLabels = secBoxes.map((b, i) => el("label", {}, b, el("span", {}, el("b", {}, codes[i]), " ", codeMeans(codes[i]))));
+  const secHint = el("div", { class: "hint" });
+  function syncSec() {
+    const n = secBoxes.filter(b => b.checked && b.value !== code.value).length;
+    secBoxes.forEach((b, i) => {
+      const c = b.value;
+      const why = c.startsWith("SAF-") ? "Safety codes go first, as the primary code" : c === "NONE" ? "NONE stands alone"
+        : c === code.value ? "This is the primary code" : code.value === "NONE" ? "NONE stands alone: no secondary codes"
+        : !b.checked && n >= 3 ? "At most 3 secondary codes" : null;
+      if (why && b.checked && why !== "At most 3 secondary codes") b.checked = false;
+      b.disabled = !!why; secLabels[i].title = why || ""; secLabels[i].classList.toggle("off", !!why);
+    });
+    secHint.textContent = `${secBoxes.filter(b => b.checked).length} of 3 · Safety codes go first, as the primary code · NONE stands alone`;
+  }
+  secBoxes.forEach(b => b.addEventListener("change", syncSec));
+  code.addEventListener("change", syncSec);
+  syncSec();
+  const mods = modelMods();
+  const modBoxes = mods.map(k => el("input", { type: "checkbox", value: k, checked: (L.modifiers || []).includes(k) }));
   const note = el("input", { placeholder: "Why are you changing it? (required, kept in the audit log)" });
   const form = el("form", { class: "ov", onsubmit: async e => {
     e.preventDefault();
-    const ok = await api("/api/override", { batch: S.data.batch, id: m.id, code: code.value, severity: +sev.value, note: note.value });
+    const ok = await api("/api/override", { batch: S.data.batch, id: m.id, code: code.value, severity: +sev.value, note: note.value,
+      secondary: secBoxes.filter(b => b.checked && !b.disabled).map(b => b.value), modifiers: modBoxes.filter(b => b.checked).map(b => b.value) });
     if (ok) load(S.csv);
-  } }, code, sev, hint, note, el("button", { class: "btn" }, "Save override"));
+  } }, code, sev, hint,
+    el("fieldset", { class: "secbox" }, el("legend", {}, "Secondary codes"), el("div", { class: "boxes" }, secLabels), secHint),
+    el("fieldset", { class: "modbox" }, el("legend", {}, "Modifiers"),
+      el("div", { class: "boxes" }, modBoxes.map((b, i) => el("label", {}, b, el("span", {}, el("b", {}, mods[i]), " ", S.data.modifiers[mods[i]])))),
+      el("div", { class: "hint" }, "Context, not issues. RP, TK and PR are set by code from the batch.")),
+    note, el("button", { class: "btn" }, "Save override"));
+
+  // Coding block: primary + secondaries with their quotes, modifiers, and what the coding rules changed.
+  const pq = quoteFor(m, L.code) || (m.evidence_found ? ML.evidence : "");
+  const secs = secCodes(L).map(c => ({ c, q: quoteFor(m, c) }));
+  const quoteLine = q => q ? el("div", { class: "cq" }, "“" + q + "”") : el("div", { class: "cq" }, "No quote (human override)");
+  const coding = el("div", { class: "coding" }, el("small", {}, "Coding"),
+    el("dl", {},
+      el("dt", {}, "Primary"), el("dd", {}, el("div", {}, codeTag(L.code), " ", codeMeans(L.code) || ""), L.code ? quoteLine(pq) : null),
+      secs.length ? [el("dt", {}, "Secondary"), el("dd", {}, secs.map(s => el("div", {}, el("div", {}, secTag(s.c), " ", codeMeans(s.c) || ""), quoteLine(s.q))))] : null,
+      m.modifiers.length ? [el("dt", {}, "Modifiers"), el("dd", {}, m.modifiers.map(k => el("div", {}, modTag(k), " ", modMeans(k))))] : null),
+    "resequenced_from" in ML ? el("div", { class: "meta" }, `Re-sequenced: safety moved to primary (was ${ML.resequenced_from || "no code"})`) : null,
+    (m.dropped_codes || []).length ? el("div", { class: "meta" }, "Removed by coding rules:",
+      el("ul", {}, m.dropped_codes.map(x => el("li", {}, `${x.code} — ${x.reason}`)))) : null);
 
   put(box, 
     el("h2", {}, m.id, " ", pill(L.severity)),
     el("div", { class: "sub" }, [m.route || "no route", m.channel.replace(/_/g, " "), m.stars ? m.stars + "★" : null,
       new Date(m.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }), m.rider].filter(Boolean).join(" · ")),
-    el("div", {},
-      codeTag(L.code), " ",
+    el("div", { class: "codes" },
+      codeTags(m),
       m.token_flag ? el("span", { class: "tag flag", title: S.data.token_rule }, "Contains override token · not trusted · kept in triage") : null),
-    el("div", { class: "quote" }, highlighted(m.text, m.evidence_found ? ML.evidence : null)),
+    el("div", { class: "quote" }, highlighted(m.text, [{ q: pq }, ...secs.map(s => ({ q: s.q, cls: "m2" }))])),
+    coding,
     m.same_rider_as.length ? el("div", { class: "links" }, "Same rider also sent: ",
       m.same_rider_as.map((id, i) => [i ? ", " : "", el("button", { onclick: () => jump(id) }, id)])) : null,
     el("div", { class: "trace" },
       el("div", {}, el("small", {}, ML.source === "model" ? "Model said" : ML.source === "mock" ? "Mock label (no model call)" : "No label yet"),
-        ML.code ? [`${ML.code} · S${ML.severity}.`, bullets(" " + ML.reason)] : "Label this message by hand below.",
+        ML.code ? [`${codeText(ML)} · S${ML.severity}.`, bullets(" " + ML.reason)] : "Label this message by hand below.",
         ML.code && !m.evidence_found ? el("div", { class: "err" }, "The quoted evidence isn't in the message. Check this label.") : null),
-      L.source === "human" ? el("div", { class: "h" }, el("small", {}, "Human override · " + L.at), `${L.code} · S${L.severity}.`, bullets(" " + L.reason)) : null),
+      L.source === "human" ? el("div", { class: "h" }, el("small", {}, "Human override · " + L.at), `${codeText(L)} · S${L.severity}.`, bullets(" " + L.reason)) : null),
     el("details", { open: needsCheck(m) || undefined }, el("summary", {}, "Change this label"), form));
 }
 
@@ -686,7 +816,7 @@ function renderPrint() {
     el("dl", {}, el("dt", {}, "Owner"), el("dd", {}, g.owner || "Unassigned"), el("dt", {}, "Fix"), el("dd", {}, bullets(g.fix)),
       g.asks ? [el("dt", {}, "Ask leadership"), el("dd", {}, g.asks.join("; "))] : null,
       el("dt", {}, "Cost"), el("dd", {}, bullets(g.cost), costMeta(g)), el("dt", {}, "Risk"), el("dd", {}, bullets(g.risk))),
-    g.ids.map(id => { const m = M(id); return el("div", { class: "pm" }, el("b", {}, `${m.id} · S${m.label.severity || "?"} · ${m.label.code || "unlabelled"} · ${m.route || "no route"}`), el("div", {}, `"${m.text}"`)); })];
+    g.ids.map(id => { const m = M(id); return el("div", { class: "pm" }, el("b", {}, `${m.id} · S${m.label.severity || "?"} · ${codeText(m.label)} · ${m.route || "no route"}`), el("div", {}, `"${m.text}"`)); })];
   put($("#print"), 
     el("h1", {}, "Rider feedback triage"), el("div", {}, `Batch ${d.batch} · ${dateRange(Object.values(d.messages))} · ${d.mode} mode`),
     el("div", {}, el("b", {}, "Rule: "), bullets(d.rule)),
@@ -700,8 +830,10 @@ function printGood() {
   return [el("h2", {}, "What's working"),
     el("dl", {}, el("dt", {}, "Riders praise"), el("dd", {}, asp.map(([a, ids]) => `${aspectName(a)} ${ids.length}`).join(" · ") || "Nothing this batch"),
       el("dt", {}, "Drivers"), el("dd", {}, w.drivers.map(dv => `${dv.id} ${dv.route} (${dv.status})`).join(" · ") || "None"),
+      el("dt", {}, "Routes with praise"), el("dd", {}, Object.entries(w.routes).map(([r, ids]) => `${r} ${ids.length} (${ids.join(", ")})`).join(" · ") || "None",
+        (w.routes_excluded || []).length ? el("div", {}, "Not counted: " + w.routes_excluded.map(x => `${x.id} ${x.route || "no route"} (${x.reason})`).join(" · ")) : null),
       el("dt", {}, "Watch list"), el("dd", {}, w.turned.map(t => `praised in ${t.praised}, complained in ${t.complained}`).join(" · ") || "No rider praised us and then complained in this batch."),
-      el("dt", {}, "Happy, with a complaint"), el("dd", {}, w.mixed.map(id => `${id} ${M(id).label.code || "unlabelled"}`).join(" · ") || "None"))];
+      el("dt", {}, "Happy, with a complaint"), el("dd", {}, w.mixed.map(id => `${id} ${codeText(M(id).label)}`).join(" · ") || "None"))];
 }
 
 /* ---------- present ---------- */
@@ -774,6 +906,12 @@ $("#pFull").onclick = fullscreen;
 $("#bPrint").onclick = () => window.print();
 $("#bPrompt").onclick = () => { $("#pSys").textContent = S.data.prompt.system; $("#pUser").textContent = S.data.prompt.user;
   $("#pCostSys").textContent = S.data.prompt.cost_system || ""; $("#pCostUser").textContent = S.data.prompt.cost_user || ""; $("#dPrompt").showModal(); };
+$("#bRules").onclick = () => {
+  put($("#rulesList"), (S.data.coding_rules || []).map(r => el("li", {}, r)));
+  put($("#modLegend"), Object.keys(S.data.modifiers || {}).map(k => [el("dt", {}, modTag(k)),
+    el("dd", {}, S.data.modifiers[k], " ", el("span", { class: "meta" }, DERIVED_MODS.has(k) ? "· set by code" : "· from the model"))]));
+  $("#dRules").showModal();
+};
 $("#bBatch").onclick = () => $("#dBatch").showModal();
 $("#file").onchange = async e => { const f = e.target.files[0]; if (f) $("#csv").value = await f.text(); };
 $("#run").onclick = () => { if ($("#csv").value.trim()) { $("#dBatch").close(); S.group = "esc"; load($("#csv").value); } };
