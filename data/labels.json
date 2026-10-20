@@ -68,10 +68,16 @@
  "groups": {
   "safety": {
    "title": "Driver safety",
-   "fix": "Today, for each incident: confirm the bus and driver from the trip record, then take a confirmed driver off duty pending review, and reply to the rider. FB-005's route code is a Hyderabad route but it names Powai in Mumbai, so confirm the bus first. Ask leadership for, in order: (1) telematics on every bus, (2) a dedicated driver phone with no distracting apps, (3) prevention-first safety training, (4) random unannounced safety inspectors.",
+   "fix": "Today, for each incident: confirm the bus and driver from the trip record, then take a confirmed driver off duty pending review, and reply to the rider. FB-005's route code is a Hyderabad route but it names Powai in Mumbai, so confirm the bus first.",
    "cost": "Not deferred. Every safety incident gets same-day verify-then-act.",
    "risk": "A crash that injures riders or the public, possibly children at a school crossing. Legal liability, regulatory action against our permits, and the kind of public incident that can end a commute business.",
-   "owner": "Fleet operations (driver management)"
+   "owner": "Fleet operations (driver management)",
+   "asks": [
+    "Telematics on every bus, so harsh driving is caught without waiting for a rider",
+    "A dedicated driver phone with no distracting apps",
+    "Prevention-first driver safety training",
+    "Random, unannounced safety inspectors on buses"
+   ]
   },
   "money": {
    "title": "Money taken, nothing delivered",

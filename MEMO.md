@@ -171,6 +171,32 @@ If the lag clusters at night or on risky stretches, it becomes a safety issue an
 
 **Risk if left unchecked.** If this one review reflects a wider view, price-sensitive riders cancel at renewal, and "paying more for older buses" spreads in reviews.
 
+## What's working, and what riders pay for
+
+Ten messages contain genuine praise, often alongside a complaint. FB-030 reads as praise but is sarcasm, so it is not counted. What riders value, in their words:
+
+| What riders value | Evidence |
+|---|---|
+| **Courteous drivers** | "driver was polite and waited the extra minute for me" (FB-001) |
+| **Comfortable seats** | "seats are comfortable" (FB-019), "otherwise comfortable" (FB-025), "seats fine" (FB-012) |
+| **AC that works** | "AC perfect" (FB-015), "AC good" (FB-026) |
+| **A smooth ride** | "smooth ride" (FB-026), "good ride overall" (FB-015) |
+| **An easier commute** | "makes my commute so much easier" (FB-028), "the best part of my morning" (FB-004), "overall happy" (FB-022) |
+
+This is what riders come for and pay a premium for, so it is what we protect first. It also sharpens the cost of the deferred problems: late buses and broken AC hit exactly what riders say they value.
+
+## Rewarding drivers
+
+Drivers named in praise should be recognised and rewarded, for example in a monthly recognition with a bonus, owned by fleet operations. It reinforces the prevention-first culture we are asking leadership for.
+
+**Rule: check the safety record before rewarding.** Not everything a customer says is gold. Praise is not proof of safe driving, and a safety violation is never outweighed by a happy rider. FB-004 is the clearest case: a rider gives 5 stars, calls the bus "the best part of my morning", and in the same message describes the driver watching a movie on the highway. A reward goes only to a driver with no open safety report. In this batch, the FB-001 driver qualifies once the trip record confirms who it was; the FB-004 driver does not.
+
+## Watch list: happy riders who turn negative
+
+A rider who usually leaves praise and then complains is an early warning. Something has changed on their route, and they are the riders most at risk of cancelling at renewal. Flag any negative message from a rider whose earlier messages were positive, and give it a reply the same day.
+
+This needs rider history across batches. The masked handle on the dashboard changes every run so it can't be reversed, so the watch list needs a stable masked key kept secret by ops. It can't be checked within this single batch.
+
 ## Who owns each problem
 
 **The rule.** Each problem goes to the department that owns it, unless that department is overloaded and another department with bandwidth can do the work. We check the owner, the cost to fix, the cost of not fixing, and whether the owner is over- or under-funded, so we don't pile work onto a team that's already drowning.
@@ -194,6 +220,8 @@ Department names are my best guess at Cityflo's structure. Costs are rough, beca
 
 - [ ] **Analyse the extra pickup stop (FB-022).** Use route data to measure how many new riders would board there and how many minutes it adds per trip, and set the threshold for adding it from that.
 - [ ] **Check the pass-pause policy (FB-029)** and send the rider a full answer.
+- [ ] **Set up driver rewards** with fleet operations, gated on a clean safety record.
+- [ ] **Build the watch list** for happy riders who turn negative, using a stable masked rider key that stays secret.
 - [ ] **Define a refund-window policy.** Set a specific time within which every refund must reach the rider, and what happens when one passes it. Today there is no window we can check FB-008 against.
 
 ## What we're deliberately cutting
@@ -201,7 +229,18 @@ Department names are my best guess at Cityflo's structure. Costs are rough, beca
 - Human confirmation of severity 1 codes. The agent assigns them for the prototype. The screen shows the reason so Meera can override it.
 - Wifi drops (FB-019). One rider, a minor inconvenience. Revisit if more riders report it.
 - Charging points (FB-026). Low value, since most riders charge their own phones, and power banks would add a daily upkeep job.
-- TODO
+- Daily auto-refresh from the support export. It's straightforward to add later, so it isn't worth building for one batch today. Until then, someone loads each new batch by hand.
+
+## Replying to every rider
+
+Every message gets a reply, with one of three statuses. The status comes from our decisions above, not from the model. The model only drafts the wording, and a human approves each reply before it is sent.
+
+- **We're working on it.** Safety (FB-004, FB-005, FB-010), money (FB-002, FB-003, FB-008, FB-013, FB-021, FB-024), late buses (FB-007, FB-014, FB-017), AC (FB-011, FB-025), route and stop changes (FB-006, FB-016), crowding and the dirty seat (FB-009, FB-020), app bugs (FB-015, FB-018, FB-023), tracking (FB-027), the extra stop (FB-022), pausing a pass (FB-029) and the price complaint (FB-030).
+- **We're not going to work on it.** Wifi (FB-019) and charging points (FB-026), with the reason.
+- **Already resolved.** None in this batch.
+- **Thanks, no action needed.** Messages with no issue (FB-001, FB-012, FB-028) get a short thank-you, approved like any other reply. FB-028 is a public Play Store review, so the thank-you is seen by people deciding whether to sign up.
+
+Safety replies thank the rider and confirm we are investigating. They never promise an outcome for a named driver before the trip record is checked.
 
 ## What I'd ask a PM or ops lead
 

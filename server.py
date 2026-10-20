@@ -126,6 +126,11 @@ def label_live(rows):
     return {l["id"]: dict(l, source="model") for l in json.loads(text)["labels"] if l["id"] in known}
 
 
+def riders(members):
+    # Anonymous store reviews have no rider id, so count each one as its own rider.
+    return len({m["id"] if m["rider"] == "anonymous" else m["rider"] for m in members})
+
+
 def load_overrides(batch):
     latest = {}
     if OVERRIDES.exists():
@@ -174,12 +179,12 @@ def triage(csv_text):
     def summary(key, members):
         sev = [m["label"]["severity"] for m in members if m["label"]["severity"]]
         return dict(GROUPS[key], key=key, severity=min(sev) if sev else None,
-                    riders=len({m["rider"] for m in members}), ids=[m["id"] for m in members])
+                    riders=riders(members), ids=[m["id"] for m in members])
 
     sev1 = [m for m in msgs if m["label"]["severity"] == 1]
     if sev1:
         esc = dict(GROUPS["safety"], key="safety", ids=[m["id"] for m in sev1],
-                   riders=len({m["rider"] for m in sev1}), severity=1)
+                   riders=riders(sev1), severity=1)
     else:
         candidates = [summary(k, v) for k, v in groups.items() if k not in ("none", "unlabelled")]
         esc = min(candidates, key=lambda g: (g["severity"] or 9, -g["riders"]), default=None)
@@ -216,9 +221,10 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def do_GET(self):
-        if self.path == "/":
+        path = self.path.split("?")[0]
+        if path == "/":
             self.send(200, (ROOT / "index.html").read_bytes(), "text/html")
-        elif self.path == "/api/triage":
+        elif path == "/api/triage":
             self.run(DEFAULT_CSV.read_text(encoding="utf-8"))
         else:
             self.send(404, {"error": "not found"})
@@ -226,8 +232,10 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         try:
             body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
-        except json.JSONDecodeError:
-            return self.send(400, {"error": "Bad JSON."})
+            if not isinstance(body, dict):
+                raise ValueError
+        except ValueError:  # covers bad JSON and a bad Content-Length
+            return self.send(400, {"error": "Bad request body."})
         if self.path == "/api/triage":
             self.run(body.get("csv", ""))
         elif self.path == "/api/override":
