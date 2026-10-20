@@ -30,7 +30,7 @@ Live mode makes two structured-JSON calls to Claude (`claude-opus-5-5`):
 python3 test_triage.py
 ```
 
-Plain asserts, mock mode, no network. Prints `all checks passed`. It covers: no raw rider id leaks (page and both prompts), the override-token message is kept and flagged, both safety incidents are escalated together, repeat riders are linked, every evidence quote is real, the slot falls to the payment fault when safety is cleared, a safety code is always severity 1, overrides need a note, every group gets a cost and allowed payers, the live cost step (with a fake model) drops evidence ids from other groups and falls back to policy text on failure, human cost edits win and are validated, sarcasm is not praise, driver-compliment status near a safety report, the praise-then-complaint watch list, and the coding system (secondary codes and also-mentioned ids, derived modifiers, safety resequencing, dropped unquoted codes, NONE standing alone, and override validation).
+Plain asserts, mock mode, no network. Prints `all checks passed`. It covers: no raw rider id leaks (page and both prompts), the override-token message is kept and flagged, both safety incidents are escalated together, repeat riders are linked, every evidence quote is real, the slot falls to the payment fault when safety is cleared, a safety code is always severity 1, overrides need a note, every group gets a cost and allowed payers, the live cost step (with a fake model) drops evidence ids from other groups and falls back to policy text on failure, human cost edits win and are validated, sarcasm is not praise, driver-compliment status near a safety report, the praise-then-complaint watch list, the coding system (secondary codes and also-mentioned ids, derived modifiers, safety resequencing, dropped unquoted codes, NONE standing alone, and override validation), and event codes (every mock code valid against the tables, commute window from the timestamp, FB-005 and FB-004 coded from the text, invalid positions and a wrong section fixed and recorded with a fake model, event overrides validated).
 
 ## What the model decides vs what plain code decides
 
@@ -56,6 +56,27 @@ The eight coding rules (also in the system prompt and on the page): code only wh
 Plain code enforces them after the model (and on mock labels): it drops a secondary code whose quote is not in the message, that repeats the primary, is a duplicate, is unknown or is NONE, and lists each drop with a reason (`dropped_codes`); clears secondary codes when the primary is NONE; swaps a safety secondary into primary (the old primary becomes secondary); caps secondary at three; forces severity 1 when any safety code is present; and keeps only known modifiers. Human overrides can set secondary codes and modifiers too, with the same rules (a safety code must be primary, NONE stands alone).
 
 Each group lists "also mentioned" tickets (`also_ids`): messages grouped elsewhere whose secondary codes belong to it, for example FB-005 and FB-010 (escalated as safety) also report late buses. They are not counted in the group's riders. A group mentioned only as a secondary code (support, via FB-021) is listed in `secondary_only`.
+
+## Event codes
+
+Category codes say which bucket a problem goes in, and they still drive grouping, escalation, severity and costs. Event codes add a description of exactly what happened, built like a medical procedure code (ICD-10-PCS): 7 positions, one character each, and each position has a fixed meaning. Every category code (primary and each secondary) gets one, and it is documented by the same exact quote.
+
+| Pos | Axis | Values | Set by |
+|---|---|---|---|
+| 1 | Section | S safety, P payment, O operations, A app, C customer support, R request, F feedback/sentiment, N no issue, X other | model; code makes it match the category family (SAF→S, PAY→P, OPS→O, APP→A, SUP→C, REQ→R, SENT→F, NONE→N, OTHER→X) |
+| 2 | System | D driver, V vehicle, C capacity, T timetable, R route/stop, P pass/booking, G payment gateway, F refund, S support channel, B booking app, K live tracking, W whole service | model |
+| 3 | Event | e.g. R rash driving, U unsafe overtaking, D distracted driving, L late, H AC not cooling, K AC too cold, M stop moved, V route deviation, A charged but pass not active, 2 charged twice, F refund delayed, Q no reply, C app crash, T tracking lag, W feature request, B price/value | model |
+| 4 | Location | S school zone, H highway, F flyover, P pickup point, E throughout the ride, B booking flow, Y payment/renewal | model, only when the text says so |
+| 5 | Commute window | M morning (05:00-11:59 IST), E evening (16:00-22:59 IST) | code, from `created_at`; the model never sees the time |
+| 6 | Who is affected | R the rider, G several riders, P public at risk | model |
+| 7 | Qualifier | R repeat (same rider, same section and system), C corroborated (another rider, same section, system and event), G ongoing in the rider's words, S single report | code for R, C and S; the model can only say G |
+
+- **Z** means "not stated" or "not applicable" in every position. The tool never guesses. Positions 2 to 7 never use I or O (O appears only as the Operations section).
+- **Validity tables** (`event_tables` in `data/labels.json`, next to `event_axes`) say which values each position allows given the earlier positions. For example, section S only allows systems D and V, and "charged twice" only exists under P-G. Code checks every position in order. It replaces an invalid value with Z, fixes a section that contradicts the category, ignores a model-supplied window, and records each change in `event_fixes` (shown on the ticket as "Changed by code").
+- **Canonical form** is the compact 7 characters (`SDUSMPR`), stored in `label.event` and on each secondary code. The dashed form (`S-D-U-S-M-P-R`) and the expansion are built by code from the tables for display (`message.events`). Z positions are left out of the expansion.
+- In live mode the model returns positions 1-4 and 6, plus G or Z for position 7, as enums in the structured output. On the page, search takes an event-code prefix (`S-D` or `SD` finds driver-safety events; at least 2 characters). The override form has one select per position, filtered by the tables, and the server rejects an event code that breaks them.
+
+Worked example, FB-005: "...cut across the lane divider to overtake at the school crossing near Powai... there were school kids right there". The model (or mock) codes S (safety), D (driver), U (unsafe overtaking), S (school zone), P (public at risk), and G for "again". Code adds M because the message was sent at 08:51 IST, and R because the same rider reported the driver in FB-010. The result is `SDUSMPR`: Safety · Driver · Unsafe overtaking · School zone · Morning commute · Public at risk · Repeat report.
 
 ## Rider ids and the override token
 
@@ -84,5 +105,5 @@ This was not deployed. If a public link is wanted, the cheapest options are a fr
 - `index.html`: the page. Rider text is rendered with `textContent` only, never as HTML.
 - `test_triage.py`: the self-check.
 - `data/feedback.csv`, `DATA_GUIDE.md`: the input and its description.
-- `data/labels.json`: codes, group write-ups (owner, fix, cost, who pays, risk; the cost text is also the fallback) and the mock labels.
+- `data/labels.json`: codes, event-code axes and validity tables, group write-ups (owner, fix, cost, who pays, risk; the cost text is also the fallback) and the mock labels.
 - `MEMO.md`: the memo to Meera.

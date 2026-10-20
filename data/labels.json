@@ -218,12 +218,296 @@
    "who_pays": []
   }
  },
+ "event_axes": [
+  {
+   "pos": 1,
+   "key": "section",
+   "axis": "Section",
+   "set_by": "model, checked by code against the category family",
+   "values": {
+    "S": "Safety",
+    "P": "Payment",
+    "O": "Operations",
+    "A": "App",
+    "C": "Customer support",
+    "R": "Request",
+    "F": "Feedback or sentiment",
+    "N": "No issue",
+    "X": "Other, needs a human look"
+   }
+  },
+  {
+   "pos": 2,
+   "key": "system",
+   "axis": "System",
+   "set_by": "model",
+   "values": {
+    "D": "Driver",
+    "V": "Vehicle (cabin, AC, seats, wifi)",
+    "C": "Capacity (seats, crowding)",
+    "T": "Timetable",
+    "R": "Route or stop",
+    "P": "Pass or booking",
+    "G": "Payment gateway",
+    "F": "Refund",
+    "S": "Support channel",
+    "B": "Booking app",
+    "K": "Live tracking",
+    "W": "Whole service",
+    "Z": "System not stated"
+   }
+  },
+  {
+   "pos": 3,
+   "key": "event",
+   "axis": "Event",
+   "set_by": "model",
+   "values": {
+    "R": "Rash driving",
+    "U": "Unsafe overtaking",
+    "D": "Distracted driving",
+    "X": "Other safety hazard",
+    "L": "Late arrival",
+    "H": "AC not cooling or off",
+    "K": "AC too cold",
+    "M": "Stop moved without notice",
+    "V": "Route deviation",
+    "P": "Crowding",
+    "S": "Dirty seat or cabin",
+    "N": "Wifi drop",
+    "A": "Charged, pass not activated",
+    "2": "Charged twice",
+    "F": "Refund delayed",
+    "Q": "No reply",
+    "C": "App crash",
+    "G": "Logged out mid-booking",
+    "E": "Confusing screen",
+    "T": "Tracking lag",
+    "W": "Feature request",
+    "Y": "How-to question",
+    "B": "Price or value complaint",
+    "Z": "Event not stated"
+   }
+  },
+  {
+   "pos": 4,
+   "key": "location",
+   "axis": "Location",
+   "set_by": "model",
+   "values": {
+    "S": "School zone",
+    "H": "Highway",
+    "F": "Flyover",
+    "P": "At the pickup point",
+    "E": "Throughout the ride",
+    "B": "In the booking flow",
+    "Y": "In payment or renewal",
+    "Z": "Location not stated"
+   }
+  },
+  {
+   "pos": 5,
+   "key": "window",
+   "axis": "Commute window",
+   "set_by": "code, from created_at (IST)",
+   "values": {
+    "M": "Morning commute",
+    "E": "Evening commute",
+    "Z": "Outside the commute windows"
+   }
+  },
+  {
+   "pos": 6,
+   "key": "who",
+   "axis": "Who is affected",
+   "set_by": "model",
+   "values": {
+    "R": "The rider",
+    "G": "Several riders",
+    "P": "Public at risk",
+    "Z": "Not stated"
+   }
+  },
+  {
+   "pos": 7,
+   "key": "qualifier",
+   "axis": "Qualifier",
+   "set_by": "code (S, R, C); G from the model",
+   "values": {
+    "S": "Single report",
+    "R": "Repeat report",
+    "C": "Corroborated by another rider",
+    "G": "Ongoing (rider's words)",
+    "Z": "Not applicable"
+   }
+  }
+ ],
+ "event_family": {
+  "SAF": "S",
+  "PAY": "P",
+  "OPS": "O",
+  "APP": "A",
+  "SUP": "C",
+  "REQ": "R",
+  "SENT": "F",
+  "NONE": "N",
+  "OTHER": "X"
+ },
+ "event_tables": {
+  "S": {
+   "who": "RGP",
+   "qualifier": "SRCG",
+   "systems": {
+    "D": {
+     "event": "RUDX",
+     "location": "SHFPE"
+    },
+    "V": {
+     "event": "X",
+     "location": "SHFPE"
+    }
+   }
+  },
+  "P": {
+   "who": "RG",
+   "qualifier": "SRCG",
+   "systems": {
+    "P": {
+     "event": "A",
+     "location": "BY"
+    },
+    "G": {
+     "event": "2",
+     "location": "BY"
+    },
+    "F": {
+     "event": "F",
+     "location": "BY"
+    }
+   }
+  },
+  "O": {
+   "who": "RG",
+   "qualifier": "SRCG",
+   "systems": {
+    "T": {
+     "event": "L",
+     "location": "PESHF"
+    },
+    "R": {
+     "event": "MV",
+     "location": "PESHF"
+    },
+    "V": {
+     "event": "HKSN",
+     "location": "ESHF"
+    },
+    "C": {
+     "event": "P",
+     "location": "EP"
+    }
+   }
+  },
+  "A": {
+   "who": "RG",
+   "qualifier": "SRCG",
+   "systems": {
+    "B": {
+     "event": "CGE",
+     "location": "BY"
+    },
+    "K": {
+     "event": "T",
+     "location": "SHFPE"
+    }
+   }
+  },
+  "C": {
+   "who": "RG",
+   "qualifier": "SRCG",
+   "systems": {
+    "S": {
+     "event": "Q",
+     "location": "BY"
+    }
+   }
+  },
+  "R": {
+   "who": "RG",
+   "qualifier": "SRCG",
+   "systems": {
+    "R": {
+     "event": "WY",
+     "location": "P"
+    },
+    "T": {
+     "event": "WY",
+     "location": "P"
+    },
+    "V": {
+     "event": "WY",
+     "location": "E"
+    },
+    "P": {
+     "event": "WY",
+     "location": "BY"
+    },
+    "B": {
+     "event": "WY",
+     "location": "B"
+    },
+    "K": {
+     "event": "WY",
+     "location": ""
+    }
+   }
+  },
+  "F": {
+   "who": "RG",
+   "qualifier": "SRCG",
+   "systems": {
+    "W": {
+     "event": "B",
+     "location": ""
+    },
+    "P": {
+     "event": "B",
+     "location": ""
+    },
+    "V": {
+     "event": "B",
+     "location": ""
+    }
+   }
+  },
+  "N": {
+   "who": "",
+   "qualifier": "",
+   "systems": {
+    "Z": {
+     "event": "",
+     "location": ""
+    }
+   }
+  },
+  "X": {
+   "who": "RGP",
+   "qualifier": "SRCG",
+   "systems": {
+    "Z": {
+     "event": "",
+     "location": "SHFPEBY"
+    }
+   }
+  }
+ },
  "labels": {
   "FB-001": {
    "code": "NONE",
    "severity": 5,
    "reason": "Praise for a polite driver who waited.",
    "evidence": "driver was polite and waited the extra minute for me",
+   "event": "NZZZZZZ",
    "praise": [
     "driver"
    ],
@@ -236,6 +520,7 @@
    "severity": 2,
    "reason": "Charged twice for one booking; second amount not returned.",
    "evidence": "the second amount has not come back yet",
+   "event": "PG2BZRZ",
    "praise": [],
    "praise_quote": "",
    "secondary": [],
@@ -246,6 +531,7 @@
    "severity": 2,
    "reason": "Payment succeeded and was debited but the pass is not active.",
    "evidence": "UPI shows success and the money is debited but the app says my pass is not active",
+   "event": "PPAYZRZ",
    "praise": [],
    "praise_quote": "",
    "secondary": [],
@@ -256,6 +542,7 @@
    "severity": 1,
    "reason": "Driver watched a movie on a phone on the dash while driving the highway. Reported inside a sincere 5-star review, not as a complaint.",
    "evidence": "the driver had a movie playing on his phone propped on the dash for most of the highway stretch today",
+   "event": "SDDHZGZ",
    "praise": [
     "service",
     "driver"
@@ -269,12 +556,14 @@
    "severity": 1,
    "reason": "Driver crossed the lane divider to overtake at a school crossing with children present. Second report from this rider; also reports lateness.",
    "evidence": "cut across the lane divider to overtake at the school crossing near Powai",
+   "event": "SDUSZPG",
    "praise": [],
    "praise_quote": "",
    "secondary": [
     {
      "code": "OPS-LATE",
-     "evidence": "bus late again"
+     "evidence": "bus late again",
+     "event": "OTLZZRG"
     }
    ],
    "modifiers": [
@@ -288,6 +577,7 @@
    "severity": 3,
    "reason": "Pickup point moved with no notification; rider waited at the old spot.",
    "evidence": "pickup point moved this morning and there was no notification, waited at the old spot",
+   "event": "ORMPZRZ",
    "praise": [],
    "praise_quote": "",
    "secondary": [],
@@ -298,6 +588,7 @@
    "severity": 3,
    "reason": "Bus 8 minutes late; rider missed their connection.",
    "evidence": "bus was 8 min late at the pickup point, missed my connection",
+   "event": "OTLPZRZ",
    "praise": [],
    "praise_quote": "",
    "secondary": [],
@@ -308,6 +599,7 @@
    "severity": 2,
    "reason": "Refund for a missed ride last week still not received.",
    "evidence": "requested a refund for a missed ride last week, still not received",
+   "event": "PFFZZRZ",
    "praise": [],
    "praise_quote": "",
    "secondary": [],
@@ -318,6 +610,7 @@
    "severity": 4,
    "reason": "Bus crowded; rider couldn't get their usual seat.",
    "evidence": "bus was quite crowded today, couldn't get my usual seat",
+   "event": "OCPZZRZ",
    "praise": [],
    "praise_quote": "",
    "secondary": [],
@@ -328,12 +621,14 @@
    "severity": 1,
    "reason": "Rash driving over several mornings, plus lateness. Same rider as the school-crossing report.",
    "evidence": "the driver has been driving pretty rash the last few mornings",
+   "event": "SDRZZRG",
    "praise": [],
    "praise_quote": "",
    "secondary": [
     {
      "code": "OPS-LATE",
-     "evidence": "bus late again"
+     "evidence": "bus late again",
+     "event": "OTLZZRG"
     }
    ],
    "modifiers": [
@@ -345,6 +640,7 @@
    "severity": 3,
    "reason": "AC barely cooling; stuffy the whole ride.",
    "evidence": "AC was barely cooling today, felt stuffy the whole way",
+   "event": "OVHEZRZ",
    "praise": [],
    "praise_quote": "",
    "secondary": [],
@@ -355,6 +651,7 @@
    "severity": 5,
    "reason": "Neutral note, no complaint.",
    "evidence": "seats fine, driver fine, no complaints really",
+   "event": "NZZZZZZ",
    "praise": [
     "seats",
     "driver"
@@ -368,6 +665,7 @@
    "severity": 2,
    "reason": "Pass renewal debited but the pass still shows expired.",
    "evidence": "money got debited for my monthly pass renewal but the pass still shows expired",
+   "event": "PPAYZRG",
    "praise": [],
    "praise_quote": "",
    "secondary": [],
@@ -380,12 +678,14 @@
    "severity": 3,
    "reason": "Sarcastic 5-star review: bus 25 minutes late again and AC off the whole ride.",
    "evidence": "25 minutes late AGAIN",
+   "event": "OTLZZRG",
    "praise": [],
    "praise_quote": "",
    "secondary": [
     {
      "code": "OPS-AC",
-     "evidence": "the AC was off the entire ride"
+     "evidence": "the AC was off the entire ride",
+     "event": "OVHEZRZ"
     }
    ],
    "modifiers": [
@@ -398,6 +698,7 @@
    "severity": 3,
    "reason": "App crashed during booking.",
    "evidence": "only the app crashed once when booking",
+   "event": "ABCBZRZ",
    "praise": [
     "ride",
     "ac"
@@ -411,6 +712,7 @@
    "severity": 3,
    "reason": "Bus took a different route from the one on the map, on a route with a safety incident.",
    "evidence": "driver took a different route than the map showed",
+   "event": "ORVZZRZ",
    "praise": [],
    "praise_quote": "",
    "secondary": [],
@@ -421,12 +723,14 @@
    "severity": 3,
    "reason": "Bus late every day and AC never works (Hindi).",
    "evidence": "bus roz late aati hai",
+   "event": "OTLZZRG",
    "praise": [],
    "praise_quote": "",
    "secondary": [
     {
      "code": "OPS-AC",
-     "evidence": "AC kabhi chalta nahi"
+     "evidence": "AC kabhi chalta nahi",
+     "event": "OVHZZRG"
     }
    ],
    "modifiers": [
@@ -438,6 +742,7 @@
    "severity": 3,
    "reason": "App logged the rider out mid-booking.",
    "evidence": "app logged me out mid-booking and i had to start the whole thing over",
+   "event": "ABGBZRZ",
    "praise": [],
    "praise_quote": "",
    "secondary": [],
@@ -448,6 +753,7 @@
    "severity": 4,
    "reason": "Wifi drops near the flyover.",
    "evidence": "wifi keeps dropping near the flyover",
+   "event": "OVNFZRG",
    "praise": [
     "seats"
    ],
@@ -460,6 +766,7 @@
    "severity": 3,
    "reason": "Dirty seat; not acceptable on a premium service.",
    "evidence": "seat was a bit dirty near the window",
+   "event": "OVSZZRZ",
    "praise": [],
    "praise_quote": "",
    "secondary": [],
@@ -470,12 +777,14 @@
    "severity": 2,
    "reason": "Still no pass and money gone; messaged support twice with no reply.",
    "evidence": "still no pass and the amount is gone from my account",
+   "event": "PPAZZRG",
    "praise": [],
    "praise_quote": "",
    "secondary": [
     {
      "code": "SUP-NO-REPLY",
-     "evidence": "i have messaged twice already today and no one has replied"
+     "evidence": "i have messaged twice already today and no one has replied",
+     "event": "CSQZZRG"
     }
    ],
    "modifiers": [
@@ -487,6 +796,7 @@
    "severity": 4,
    "reason": "Request for an extra pickup stop.",
    "evidence": "wish the morning bus had one more pickup stop near my place",
+   "event": "RRWPZRZ",
    "praise": [
     "service"
    ],
@@ -499,6 +809,7 @@
    "severity": 4,
    "reason": "Seat selection screen is confusing.",
    "evidence": "the seat selection screen is confusing",
+   "event": "ABEBZRZ",
    "praise": [
     "app"
    ],
@@ -511,6 +822,7 @@
    "severity": 2,
    "reason": "Pass renewal deducted, no active pass, on both routes the rider uses.",
    "evidence": "amount was deducted, app still says no active pass",
+   "event": "PPAYZRZ",
    "praise": [],
    "praise_quote": "",
    "secondary": [],
@@ -521,6 +833,7 @@
    "severity": 4,
    "reason": "AC slightly too cold.",
    "evidence": "AC a little cold this morning",
+   "event": "OVKZZRZ",
    "praise": [
     "ride"
    ],
@@ -533,6 +846,7 @@
    "severity": 4,
    "reason": "Request for a charging point at every seat.",
    "evidence": "would be great to have a charging point at every seat",
+   "event": "RVWZZGZ",
    "praise": [
     "ride",
     "ac"
@@ -546,6 +860,7 @@
    "severity": 4,
    "reason": "Live tracking lags a few minutes near the highway.",
    "evidence": "the live tracking lags by a few minutes near the highway",
+   "event": "AKTHZRZ",
    "praise": [
     "service"
    ],
@@ -558,6 +873,7 @@
    "severity": 5,
    "reason": "General praise.",
    "evidence": "Love the service, makes my commute so much easier",
+   "event": "NZZZZZZ",
    "praise": [
     "service"
    ],
@@ -570,6 +886,7 @@
    "severity": 4,
    "reason": "Asks how to pause a monthly pass; needs a reply.",
    "evidence": "can I pause my monthly pass for a week while I travel?",
+   "event": "RPYZZRZ",
    "praise": [],
    "praise_quote": "",
    "secondary": [],
@@ -580,6 +897,7 @@
    "severity": 4,
    "reason": "Sarcastic 5-star review: price went up while buses got older.",
    "evidence": "great job raising the pass price and giving us older buses",
+   "event": "FPBZZGZ",
    "praise": [],
    "praise_quote": "",
    "secondary": [],

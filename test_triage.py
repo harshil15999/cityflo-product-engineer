@@ -193,7 +193,7 @@ assert all("TK" in mods[i] for i in ("FB-002", "FB-012"))
 assert "PR" in mods["FB-001"] and "PR" not in mods["FB-030"]
 assert {"TP", "LC", "ON"} <= mods["FB-005"] and "SC" in mods["FB-014"]
 assert sum("RP" in v for v in mods.values()) == 4 and sum("TK" in v for v in mods.values()) == 2
-assert len(r["coding_rules"]) == 8
+assert len(r["coding_rules"]) == 11
 assert set(r["modifiers"]) == {"SC", "TP", "LC", "ON", "RP", "TK", "PR"}
 
 # Coding rules enforced by code on live output (fake model, no network).
@@ -222,7 +222,8 @@ try:
     m7 = rc["messages"]["FB-007"]
     assert m7["label"]["code"] == "SAF-OTHER" and m7["label"]["severity"] == 1
     assert m7["label"]["evidence"] == "missed my connection"
-    assert m7["label"]["secondary"] == [{"code": "OPS-LATE", "evidence": "bus was 8 min late"}]
+    assert [(s["code"], s["evidence"]) for s in m7["label"]["secondary"]] == [("OPS-LATE", "bus was 8 min late")]
+    assert m7["label"]["secondary"][0]["event"].startswith("OTLP")  # the event code moves with its category code
     assert m7["label"]["modifiers"] == ["ON"]  # unknown modifier dropped
     assert "FB-007" in rc["escalation"]["ids"]
     m9 = rc["messages"]["FB-009"]
@@ -241,7 +242,7 @@ server.save_override({"batch": r["batch"], "id": "FB-011", "code": "OPS-AC", "se
                       "secondary": ["OPS-LATE"], "modifiers": ["ON"]})
 r6 = server.triage(CSV)
 lab11 = r6["messages"]["FB-011"]["label"]
-assert lab11["source"] == "human" and lab11["secondary"] == [{"code": "OPS-LATE", "evidence": ""}]
+assert lab11["source"] == "human" and [(s["code"], s["evidence"]) for s in lab11["secondary"]] == [("OPS-LATE", "")]
 assert lab11["modifiers"] == ["ON"] and r6["messages"]["FB-011"]["modifiers"] == ["ON"]
 assert "FB-011" in next(g for g in r6["groups"] if g["key"] == "late")["also_ids"]
 for bad, msg in (({"code": "OPS-LATE", "secondary": ["SAF-OTHER"]}, "safety code first"),
@@ -255,5 +256,92 @@ for bad, msg in (({"code": "OPS-LATE", "secondary": ["SAF-OTHER"]}, "safety code
         raise AssertionError(f"bad override accepted: {bad}")
     except ValueError as e:
         assert msg in str(e), (bad, e)
+
+# Event codes (PCS-style): 7 positions, each one axis, valid per the tables in labels.json.
+def valid_event(e):
+    return isinstance(e, str) and len(e) == 7 and all(e[p] in server.ev_allowed(p, list(e)) for p in range(7))
+
+for m in r["messages"].values():
+    L = m["label"]
+    assert m["event_fixes"] == [], (m["id"], m["event_fixes"])
+    assert valid_event(L["event"]) and all(valid_event(s["event"]) for s in L["secondary"]), m["id"]
+    assert L["event"][0] == server.family(L["code"]), m["id"]  # section matches the category family
+    assert len(m["events"]) == 1 + len(L["secondary"]) and all(e["expansion"] for e in m["events"]), m["id"]
+    assert all(e["evidence"] in m["text"] for e in m["events"]), m["id"]  # same quote as its category code
+    assert not any(c in "IO" for e in m["events"] for c in e["code"][1:]), m["id"]  # no I or O after position 1
+    assert L["event"][4] == server.commute_window(m["created_at"]), m["id"]
+assert r["messages"]["FB-005"]["label"]["event"][4] == "M" and r["messages"]["FB-008"]["label"]["event"][4] == "E"
+e5 = r["messages"]["FB-005"]["events"][0]
+assert e5["code"] == "SDUSMPR" and e5["dashed"] == "S-D-U-S-M-P-R", e5
+assert e5["expansion"] == "Safety · Driver · Unsafe overtaking · School zone · Morning commute · Public at risk · Repeat report", e5
+assert r["messages"]["FB-004"]["label"]["event"][3] == "H"   # highway stretch
+assert r["messages"]["FB-019"]["label"]["event"][3] == "F"   # flyover
+assert r["messages"]["FB-007"]["label"]["event"][3] == "P"   # pickup point
+assert r["messages"]["FB-010"]["label"]["event"][3] == "Z"   # no location stated: Z, never a guess
+assert r["messages"]["FB-003"]["label"]["event"][6] == "C"   # corroborated by FB-024, another rider
+assert r["messages"]["FB-004"]["label"]["event"][6] == "S"   # single report
+assert r["messages"]["FB-021"]["label"]["secondary"][0]["event"][6] == "G"  # "messaged twice already": ongoing
+assert {"event_axes", "event_tables", "event_family"} <= set(r)
+
+# Event codes from a fake live model: code checks every position and records each fix.
+EV = {
+    # Location Q does not exist and charged-twice is not a driver event: both become Z. Position 5 from the model is ignored.
+    "FB-010": {"event": {"section": "S", "system": "D", "event": "2", "location": "Q", "window": "E", "who": "G", "qualifier": "Z"}},
+    # Section P contradicts OPS-LATE: fixed to O. Repeat (R) is code's call, not the model's.
+    "FB-007": {"event": {"section": "P", "system": "T", "event": "L", "location": "P", "who": "R", "qualifier": "R"}},
+    # A secondary with no event code gets one built from its category.
+    "FB-014": {"secondary": [{"code": "OPS-AC", "evidence": "the AC was off the entire ride"}]},
+}
+def event_model(system, user, schema):
+    if system == server.SYSTEM_PROMPT:
+        return {"labels": [dict(lab, **EV.get(i, {}), id=i) for i, lab in server.MOCK.items()]}
+    return {"groups": []}
+
+server.LIVE = True
+try:
+    server.call_model = event_model
+    server.LABEL_CACHE.clear(); server.COST_CACHE.clear()
+    re_ = server.triage(CSV)
+    m4 = re_["messages"]["FB-010"]   # (FB-004 was relabelled NONE by a human above)
+    assert m4["label"]["event"] == "SDZZMGR", m4["label"]["event"]   # 08:12 IST is the morning, whatever the model said; same rider as FB-005
+    fx = {f["position"]: f for f in m4["event_fixes"]}
+    assert set(fx) == {3, 4, 5} and fx[3]["from"] == "2" and fx[4]["from"] == "Q" and fx[5]["to"] == "M", m4["event_fixes"]
+    m7 = re_["messages"]["FB-007"]
+    assert m7["label"]["event"] == "OTLPMRC", m7["label"]["event"]   # corroborated by other late reports
+    assert {(f["position"], f["from"], f["to"]) for f in m7["event_fixes"]} == {(1, "P", "O"), (7, "R", "Z")}, m7["event_fixes"]
+    assert m7["label"]["code"] == "OPS-LATE"   # the category stays authoritative
+    m14 = re_["messages"]["FB-014"]
+    assert m14["label"]["secondary"][0]["event"][:4] == "OZZZ" and m14["event_fixes"][0]["position"] is None
+    sch = {}
+    server.call_model = lambda system, user, schema: (system == server.SYSTEM_PROMPT and sch.update(schema)) or event_model(system, user, schema)
+    server.LABEL_CACHE.clear(); server.COST_CACHE.clear()
+    server.triage(CSV)
+    ev_schema = sch["properties"]["labels"]["items"]["properties"]["event"]
+    assert "window" not in ev_schema["properties"] and ev_schema["properties"]["qualifier"]["enum"] == ["G", "Z"]
+    assert not re.search(r"R-1\d{4}", json.dumps(re_)), "raw rider_id leaked with event codes"
+finally:
+    server.call_model = orig_call
+    server.LIVE = False
+    server.LABEL_CACHE.clear(); server.COST_CACHE.clear()
+
+# Overrides with an event code: validated against the tables; stored; position 5 and the qualifier re-derived.
+base = {"batch": r["batch"], "id": "FB-025", "code": "OPS-AC", "severity": 4, "note": "AC was off, not cold"}
+for bad, msg in (("S-V-H-E-M-R-Z", "section must be O"), ("O-V-L-E-M-R-Z", "position 3"), ("O-V-H-Y-M-R-Z", "position 4"),
+                 ("O-V-H-E-M-P-Z", "position 6"), ("O-V-H", "7 positions"), ("O-V-H-E-Q-R-Z", "pick from the list")):
+    try:
+        server.save_override(dict(base, event=bad))
+        raise AssertionError(f"bad event override accepted: {bad}")
+    except ValueError as e:
+        assert msg in str(e), (bad, e)
+server.save_override(dict(base, event="O-V-H-E-E-R-G"))
+r7 = server.triage(CSV)
+m25 = r7["messages"]["FB-025"]
+assert m25["label"]["source"] == "human" and m25["label"]["event"] == "OVHEMRC", m25["label"]["event"]  # 08:39 is morning; corroborated
+assert m25["events"][0]["expansion"].startswith("Operations · Vehicle (cabin, AC, seats, wifi) · AC not cooling or off · Throughout the ride")
+assert m25["model_label"]["event"] == "OVKZMRS"   # the model's (mock) event stays visible
+assert json.loads(server.OVERRIDES.read_text().splitlines()[-1])["event"] == "OVHEZRG"
+
+# Prompts and payload never carry a raw rider id, with event codes added.
+assert not re.search(r"R-1\d{4}", json.dumps(r7) + r7["prompt"]["system"] + r7["prompt"]["user"]), "raw rider_id leaked"
 
 print("all checks passed")

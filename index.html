@@ -146,6 +146,33 @@ mark.m2 { background:var(--mark2); border-bottom:2px dotted var(--s2); }
 .mod { display:inline-block; font-size:11px; font-weight:750; line-height:1.4; padding:0 4px; border-radius:4px;
   border:1px solid var(--muted); color:var(--muted); letter-spacing:.03em; white-space:nowrap; }
 .mod.derived { border-style:dotted; }
+/* Event code (PCS-style, 7 positions): monospace, compact; the tooltip carries the full expansion. */
+.ev { display:inline-block; font:650 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing:.06em;
+  padding:0 5px; border-radius:4px; background:var(--panel2); border:1px solid var(--line); color:var(--ink); white-space:nowrap; }
+.evcode { margin-top:10px; padding-top:8px; border-top:1px solid var(--line); }
+.evcode > small { display:block; font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:4px; }
+.evone + .evone { margin-top:10px; }
+.evh { display:flex; flex-wrap:wrap; align-items:center; gap:4px 6px; }
+.evh .ev { font-size:13.5px; }
+.evh .meta { margin:0; font-size:13px; flex-basis:100%; }
+table.evt { width:100%; border-collapse:collapse; margin-top:4px; font-size:13.5px; }
+.evt th { text-align:left; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding:2px 6px; border-bottom:1px solid var(--line); }
+.evt td { padding:2px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+.evt td:first-child { color:var(--muted); font-variant-numeric:tabular-nums; width:2.5em; }
+.evt td:nth-child(2) { color:var(--muted); }
+.evt code { font:700 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.evt tr.z td { color:var(--muted); }
+.evt .by { color:var(--muted); font-size:12px; white-space:nowrap; }
+.evt td:last-child { overflow-wrap:anywhere; }
+.detailcol { min-width:0; } /* a long event table must not widen the one-column grid on phones */
+.ov .evsel { display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:6px 10px; }
+.ov .evsel label { display:grid; gap:2px; min-width:0; font-size:13px; }
+.ov .evsel label > span { color:var(--muted); font-weight:600; }
+.ov .evsel select { width:100%; padding:6px 8px; }
+.ov .evsel output { padding:6px 8px; border:1px dashed var(--line); border-radius:8px; color:var(--muted); font-size:13.5px; overflow-wrap:anywhere; }
+dialog .evv { display:inline-block; margin:0 10px 2px 0; font-size:14px; }
+dialog .evv code, dialog dt code { font:700 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+dialog .evtables { font-size:13.5px; margin:4px 0 12px; padding-left:1.2em; }
 .coding { margin:12px 0; padding:10px 12px; border-radius:8px; background:var(--panel2); font-size:14.5px; }
 .coding > small { display:block; font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:4px; }
 .coding dl { display:grid; grid-template-columns:96px minmax(0, 1fr); gap:6px 10px; margin:0; }
@@ -304,7 +331,7 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
   <h2 class="sec">Work the queue</h2>
   <section class="work">
     <aside class="panel nav sticky" aria-label="Groups and filters">
-      <input type="search" id="q" placeholder="Search text, id, route, code   ( / )">
+      <input type="search" id="q" placeholder="Search text, id, route, code, event code   ( / )">
       <div class="chips" id="sevChips" aria-label="Filter by severity"></div>
       <select id="route" aria-label="Filter by route"></select>
       <div class="checks">
@@ -355,6 +382,11 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
   <h3>Modifiers</h3>
   <p class="meta">Context, not issues. Solid border: chosen by the model (or a human). Dotted border: set by code from the batch.</p>
   <dl class="legend" id="modLegend"></dl>
+  <h3>Event codes</h3>
+  <p class="meta">Built like a procedure code (ICD-10-PCS): 7 positions, one character each, every position one axis, together describing exactly what happened. Each category code gets one, documented by the same quote. Z means not stated or not applicable: the tool never guesses. Positions 2 to 7 never use I or O. Code sets position 5 from the message time and the single, repeat and corroborated qualifiers from the batch.</p>
+  <p id="evExample"></p>
+  <dl class="legend" id="evLegend"></dl>
+  <details><summary>Validity tables (which values each position allows, given the positions before it)</summary><ul class="evtables" id="evTables"></ul></details>
   <form method="dialog"><button class="btn">Close</button></form>
 </dialog>
 <dialog id="dBatch">
@@ -405,7 +437,24 @@ const secCodes = L => (L.secondary || []).map(s => s.code);
 const secTag = c => el("span", { class: "tag sectag", title: "Secondary: " + (codeMeans(c) || c) }, "+" + c);
 const modMeans = k => `${(S.data.modifiers || {})[k] || k} (${DERIVED_MODS.has(k) ? "set by code" : "from the model"})`;
 const modTag = k => el("span", { class: "mod" + (DERIVED_MODS.has(k) ? " derived" : ""), title: modMeans(k) }, k);
-const codeTags = m => el("span", { class: "codes" }, codeTag(m.label.code), secCodes(m.label).map(secTag), (m.modifiers || []).map(modTag));
+// Event codes (PCS-style): one per category code, built and checked by the server. m.events = [primary, ...secondary].
+const evs = m => m.events || [];
+const evPrim = m => evs(m).find(e => e.role === "primary");
+const evSecs = m => evs(m).filter(e => e.role === "secondary");
+const evTag = e => e ? el("span", { class: "ev", title: `Event code ${e.dashed}: ${e.expansion}` }, e.code) : null;
+const codeTags = m => el("span", { class: "codes" }, codeTag(m.label.code), evTag(evPrim(m)),
+  secCodes(m.label).map((c, i) => [secTag(c), evTag(evSecs(m)[i])]), (m.modifiers || []).map(modTag));
+// Event-code prefix search: "S-D" or "SD" finds driver-safety events. Needs 2+ characters, so "Z" alone matches nothing extra.
+const evPrefix = q => { const c = q.trim().toUpperCase().replace(/-/g, ""); return c.length >= 2 && /^[A-Z0-9]+$/.test(c) ? c : null; };
+// Validity tables, mirrored from the server: values allowed at position pos (0-based) given the earlier positions.
+function evAllowed(pos, ch) {
+  const A = S.data.event_axes, T = S.data.event_tables, t = T[ch[0]] || {};
+  const vals = pos === 0 ? Object.keys(T) : pos === 1 ? Object.keys(t.systems || {}).join("")
+    : pos < 4 ? (((t.systems || {})[ch[1]] || {})[A[pos].key] || "") : pos === 4 ? "ME" : pos === 5 ? (t.who || "") : (t.qualifier || "");
+  const ok = new Set([...vals, ...(pos ? ["Z"] : [])]);
+  return Object.keys(A[pos].values).filter(v => ok.has(v));
+}
+const famOf = c => (S.data.event_family || {})[(c || "").split("-")[0]];
 const codeText = L => [L.code || "unlabelled", ...secCodes(L).map(c => "+" + c)].join(" ");
 // The quote behind a code: the model's own quote for that code (also shown under a human override), else the label's.
 function quoteFor(m, c) {
@@ -503,7 +552,9 @@ const groupOf = k => { k = KEY_ALIAS[k] || k;
 
 // Each filter: is it active, and does message m pass it? (filtered() and jump() share these.)
 const FILTERS = {
-  q: [f => f.q.trim(), (m, f) => [m.id, m.text, m.route, m.label.code || "", ...secCodes(m.label), ...(m.modifiers || [])].join(" ").toLowerCase().includes(f.q.trim().toLowerCase())],
+  q: [f => f.q.trim(), (m, f) => { const p = evPrefix(f.q);
+    return (p && evs(m).some(e => e.code.startsWith(p))) ||
+      [m.id, m.text, m.route, m.label.code || "", ...secCodes(m.label), ...(m.modifiers || [])].join(" ").toLowerCase().includes(f.q.trim().toLowerCase()); }],
   sev: [f => f.sev.size, (m, f) => f.sev.has(m.label.severity || 0)],
   route: [f => f.route, (m, f) => (m.route || "(none)") === f.route],
   token: [f => f.token, m => m.token_flag],
@@ -729,18 +780,20 @@ function renderDetail() {
   syncSec();
   const mods = modelMods();
   const modBoxes = mods.map(k => el("input", { type: "checkbox", value: k, checked: (L.modifiers || []).includes(k) }));
+  const ev = evEditor(m, code);
   const note = el("input", { placeholder: "Why are you changing it? (required, kept in the audit log)" });
   const form = el("form", { class: "ov", onsubmit: async e => {
     e.preventDefault();
     const ok = await api("/api/override", { batch: S.data.batch, id: m.id, code: code.value, severity: +sev.value, note: note.value,
-      secondary: secBoxes.filter(b => b.checked && !b.disabled).map(b => b.value), modifiers: modBoxes.filter(b => b.checked).map(b => b.value) });
+      secondary: secBoxes.filter(b => b.checked && !b.disabled).map(b => b.value), modifiers: modBoxes.filter(b => b.checked).map(b => b.value),
+      event: ev.value() });
     if (ok) load(S.csv);
   } }, code, sev, hint,
     el("fieldset", { class: "secbox" }, el("legend", {}, "Secondary codes"), el("div", { class: "boxes" }, secLabels), secHint),
     el("fieldset", { class: "modbox" }, el("legend", {}, "Modifiers"),
       el("div", { class: "boxes" }, modBoxes.map((b, i) => el("label", {}, b, el("span", {}, el("b", {}, mods[i]), " ", S.data.modifiers[mods[i]])))),
       el("div", { class: "hint" }, "Context, not issues. RP, TK and PR are set by code from the batch.")),
-    note, el("button", { class: "btn" }, "Save override"));
+    ev.node, note, el("button", { class: "btn" }, "Save override"));
 
   // Coding block: primary + secondaries with their quotes, modifiers, and what the coding rules changed.
   const pq = quoteFor(m, L.code) || (m.evidence_found ? ML.evidence : "");
@@ -753,7 +806,8 @@ function renderDetail() {
       m.modifiers.length ? [el("dt", {}, "Modifiers"), el("dd", {}, m.modifiers.map(k => el("div", {}, modTag(k), " ", modMeans(k))))] : null),
     "resequenced_from" in ML ? el("div", { class: "meta" }, `Re-sequenced: safety moved to primary (was ${ML.resequenced_from || "no code"})`) : null,
     (m.dropped_codes || []).length ? el("div", { class: "meta" }, "Removed by coding rules:",
-      el("ul", {}, m.dropped_codes.map(x => el("li", {}, `${x.code} — ${x.reason}`)))) : null);
+      el("ul", {}, m.dropped_codes.map(x => el("li", {}, `${x.code} — ${x.reason}`)))) : null,
+    evBreakdown(m));
 
   put(box, 
     el("h2", {}, m.id, " ", pill(L.severity)),
@@ -772,6 +826,58 @@ function renderDetail() {
         ML.code && !m.evidence_found ? el("div", { class: "err" }, "The quoted evidence isn't in the message. Check this label.") : null),
       L.source === "human" ? el("div", { class: "h" }, el("small", {}, "Human override · " + L.at), `${codeText(L)} · S${L.severity}.`, bullets(" " + L.reason)) : null),
     el("details", { open: needsCheck(m) || undefined }, el("summary", {}, "Change this label"), form));
+}
+
+// Event code breakdown: one table per category code (position, axis, value, meaning), then what code changed.
+function evBreakdown(m) {
+  const E = evs(m);
+  if (!E.length) return null;
+  return el("div", { class: "evcode" }, el("small", {}, "Event code"),
+    E.map(e => el("div", { class: "evone" },
+      el("div", { class: "evh" }, el("span", { class: "ev", title: e.code }, e.dashed),
+        e.role === "primary" ? codeTag(e.for) : secTag(e.for), el("span", { class: "meta" }, e.expansion)),
+      el("table", { class: "evt" },
+        el("thead", {}, el("tr", {}, ["Pos", "Axis", "Value", "Meaning"].map(h => el("th", { scope: "col" }, h)))),
+        el("tbody", {}, e.positions.map(p => el("tr", { class: p.value === "Z" ? "z" : null },
+          el("td", {}, p.pos), el("td", {}, p.axis), el("td", {}, el("code", {}, p.value)),
+          el("td", {}, p.meaning, p.set_by === "code" ? el("span", { class: "by" }, " · set by code") : null))))))),
+    (m.event_fixes || []).length ? el("div", { class: "meta" }, "Changed by code:",
+      el("ul", {}, m.event_fixes.map(f => el("li", {}, f.position
+        ? `${f.for} · position ${f.position} (${f.axis}): ${f.from} → ${f.to}. ${f.reason}` : `${f.for}: ${f.reason}`)))) : null);
+}
+// Override: one select per position, each filtered by the validity tables given the positions before it.
+// Section follows the category code; position 5 and the single/repeat/corroborated qualifier are read-only (set by code).
+function evEditor(m, codeSel) {
+  const A = S.data.event_axes, P = evPrim(m);
+  if (!A) return { node: null, value: () => undefined };  // an older server without event codes
+  const ch = [...(m.label.event || (famOf(m.label.code) || "N") + "ZZZZZZ")];
+  ch[6] = P ? P.said_qualifier : "Z";
+  const shownQ = m.label.event ? m.label.event[6] : "Z";
+  const sels = A.map((a, i) => i === 4 ? null : el("select", { "aria-label": `Event code position ${a.pos}: ${a.axis}`, "data-pos": a.pos,
+    disabled: i === 0 || null, title: i === 0 ? "Follows the category code" : null, onchange: e => { ch[i] = e.target.value; sync(); } }));
+  const out = el("div", { class: "hint" });
+  function sync() {
+    ch[0] = famOf(codeSel.value) || ch[0];
+    A.forEach((a, i) => {
+      if (i === 4) return;
+      let opts = i === 0 ? [ch[0]] : evAllowed(i, ch);
+      if (i === 6) opts = opts.filter(v => (S.data.model_qualifiers || "GZ").includes(v));
+      if (!opts.includes(ch[i])) ch[i] = opts.includes("Z") ? "Z" : opts[0];
+      put(sels[i], opts.map(v => el("option", { value: v, selected: v === ch[i] },
+        i === 6 && v === "Z" ? "Z — Not marked ongoing (code decides)" : `${v} — ${a.values[v]}`)));
+      sels[i].value = ch[i];
+    });
+    out.textContent = `${ch.slice(0, 4).join("-")}-${ch[4]}-${ch[5]}-… · position 5 comes from the message time. ` +
+      `Position 7 is re-derived after saving: R repeat, C corroborated or S single are set by code; G only if you mark it ongoing.`;
+  }
+  codeSel.addEventListener("change", sync);
+  sync();
+  const cells = A.map((a, i) => el("label", {}, el("span", {}, `${a.pos} · ${a.axis}`), i === 4
+    ? el("output", { title: "Set by code from created_at (IST)" }, `${ch[4]} — ${a.values[ch[4]]} (set by code)`)
+    : sels[i]));
+  cells.push(el("label", {}, el("span", {}, "7 · current, set by code"), el("output", { title: "Set by code from the batch" }, `${shownQ} — ${A[6].values[shownQ]}`)));
+  return { node: el("fieldset", { class: "evbox" }, el("legend", {}, "Primary event code"), el("div", { class: "evsel" }, cells), out),
+           value: () => ch.join("") };
 }
 
 function select(key) { S.group = key; S.msg = null; renderNav(); renderGroupInfo(); renderList(); renderDetail(); }
@@ -816,7 +922,7 @@ function renderPrint() {
     el("dl", {}, el("dt", {}, "Owner"), el("dd", {}, g.owner || "Unassigned"), el("dt", {}, "Fix"), el("dd", {}, bullets(g.fix)),
       g.asks ? [el("dt", {}, "Ask leadership"), el("dd", {}, g.asks.join("; "))] : null,
       el("dt", {}, "Cost"), el("dd", {}, bullets(g.cost), costMeta(g)), el("dt", {}, "Risk"), el("dd", {}, bullets(g.risk))),
-    g.ids.map(id => { const m = M(id); return el("div", { class: "pm" }, el("b", {}, `${m.id} · S${m.label.severity || "?"} · ${codeText(m.label)} · ${m.route || "no route"}`), el("div", {}, `"${m.text}"`)); })];
+    g.ids.map(id => { const m = M(id); return el("div", { class: "pm" }, el("b", {}, `${m.id} · S${m.label.severity || "?"} · ${codeText(m.label)}${evs(m).length ? " · " + evs(m).map(e => e.dashed).join(" +") : ""} · ${m.route || "no route"}`), el("div", {}, `"${m.text}"`)); })];
   put($("#print"), 
     el("h1", {}, "Rider feedback triage"), el("div", {}, `Batch ${d.batch} · ${dateRange(Object.values(d.messages))} · ${d.mode} mode`),
     el("div", {}, el("b", {}, "Rule: "), bullets(d.rule)),
@@ -910,6 +1016,16 @@ $("#bRules").onclick = () => {
   put($("#rulesList"), (S.data.coding_rules || []).map(r => el("li", {}, r)));
   put($("#modLegend"), Object.keys(S.data.modifiers || {}).map(k => [el("dt", {}, modTag(k)),
     el("dd", {}, S.data.modifiers[k], " ", el("span", { class: "meta" }, DERIVED_MODS.has(k) ? "· set by code" : "· from the model"))]));
+  const A = S.data.event_axes || [], ex = (M("FB-005") && evPrim(M("FB-005"))) || Object.values(S.data.messages).map(evPrim).find(Boolean);
+  put($("#evExample"), ex ? ["Example: ", el("span", { class: "ev" }, ex.dashed), " (", el("code", {}, ex.code), ") = ", ex.expansion, "."] : null);
+  put($("#evLegend"), A.map(a => [el("dt", {}, el("code", {}, a.pos), " ", a.axis),
+    // JS objects list digit keys first; show letters, then digits, then Z.
+    el("dd", {}, Object.entries(a.values).sort((x, y) => (x[0] === "Z") - (y[0] === "Z") || /\d/.test(x[0]) - /\d/.test(y[0]))
+      .map(([k, v]) => el("span", { class: "evv" }, el("code", {}, k), " ", v)),
+      el("div", { class: "meta" }, "Set by: " + a.set_by))]));
+  put($("#evTables"), Object.entries(S.data.event_tables || {}).map(([sec, t]) => el("li", {}, el("code", {}, sec), ` ${A[0].values[sec]}: `,
+    Object.entries(t.systems).map(([y, r]) => `system ${y} → event ${[...r.event].join("/") || "Z"}, location ${[...r.location].join("/") || "Z"}`).join("; "),
+    `; who ${[...(t.who || "")].join("/") || "Z"}`)));
   $("#dRules").showModal();
 };
 $("#bBatch").onclick = () => $("#dBatch").showModal();

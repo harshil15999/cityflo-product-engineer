@@ -16,12 +16,14 @@ import secrets
 import sys
 import time
 from collections import defaultdict
+from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 ROOT = Path(__file__).parent
 CFG = json.loads((ROOT / "data" / "labels.json").read_text(encoding="utf-8"))
 CODES, GROUPS, MOCK = CFG["codes"], CFG["groups"], CFG["labels"]
+EVENT_AXES, EVENT_TABLES, EVENT_FAMILY = CFG["event_axes"], CFG["event_tables"], CFG["event_family"]
 OVERRIDES = ROOT / "overrides.jsonl"
 DEFAULT_CSV = ROOT / "data" / "feedback.csv"
 TOKEN = "CF-PRIORITY-OVERRIDE"
@@ -59,7 +61,115 @@ CODING_RULES = [
     "NONE stands alone and is never combined with another code.",
     "Modifiers add context, not issues.",
     "Severity is set by the most serious code; any safety code makes the message severity 1.",
+    "Build an event code for every code, one position at a time, from what the rider wrote: section, system, event, location, who is affected, qualifier. Use Z when a position is not stated; never guess.",
+    "Every event position must be valid for the positions before it (the validity tables), and the section must match the category family.",
+    "The commute window and the single, repeat and corroborated qualifiers are set by code from the timestamp and the batch, never by the model.",
 ]
+
+# Event codes, styled on procedure codes (ICD-10-PCS): 7 positions, one character each, each position
+# one axis. Canonical form is the compact 7 characters (SDUSMPR); the dashed form (S-D-U-S-M-P-R) is for
+# display. Z always means "not stated / not applicable". Positions 2-7 never use I or O.
+EV_KEYS = [a["key"] for a in EVENT_AXES]  # section, system, event, location, window, who, qualifier
+MODEL_QUALIFIERS = "GZ"  # the model may only say "ongoing"; code sets single, repeat and corroborated
+IST = timezone(timedelta(hours=5, minutes=30))
+
+
+def family(code):
+    return EVENT_FAMILY.get(code.split("-")[0]) if code in CODES else None
+
+
+def ev_allowed(pos, ch):
+    """Values allowed at position pos (0-based), given the positions before it. Z is always allowed after position 1."""
+    if pos == 0:
+        return set(EVENT_TABLES)
+    t = EVENT_TABLES.get(ch[0], {})
+    if pos == 1:
+        vals = "".join(t.get("systems", {}))
+    elif pos in (2, 3):
+        vals = (t.get("systems", {}).get(ch[1]) or {}).get(EV_KEYS[pos], "")
+    elif pos == 4:
+        vals = "ME"
+    elif pos == 5:
+        vals = t.get("who", "")
+    else:
+        vals = t.get("qualifier", "")
+    return set(vals) | {"Z"}
+
+
+def commute_window(created_at):
+    """Position 5, from the message timestamp in IST: M 05:00-11:59, E 16:00-22:59, else Z."""
+    try:
+        t = datetime.fromisoformat(created_at)
+    except (TypeError, ValueError):
+        return "Z"
+    h = (t if t.tzinfo else t.replace(tzinfo=IST)).astimezone(IST).hour
+    return "M" if 5 <= h < 12 else "E" if 16 <= h < 23 else "Z"
+
+
+def ev_chars(raw):
+    """An event as 7 characters. Accepts {axis key: value}, 'SDUSMPR' or 'S-D-U-S-M-P-R'; anything else is None."""
+    if isinstance(raw, dict):
+        return [(str(raw.get(k) or "Z").strip().upper() or "Z")[:1] for k in EV_KEYS]
+    if isinstance(raw, str) and len(raw.replace("-", "").strip()) == 7:
+        return list(raw.replace("-", "").strip().upper())
+    return None
+
+
+def ev_validate(raw, code, window, fixes):
+    """Check one event code position by position against the tables; fix what is invalid and record why.
+    Returns 7 characters with position 7 still the model's part (G or Z); derive_qualifiers() finishes it."""
+    fam = family(code)
+    if not fam:
+        return None
+    ch = ev_chars(raw)
+    if ch is None:
+        fixes.append({"for": code, "position": None, "axis": "All", "from": "", "to": fam + "ZZZZZZ",
+                      "reason": "No event code given: built from the category family, Z everywhere else."})
+        ch = [fam] + ["Z"] * 6
+
+    def fix(pos, new, why):
+        fixes.append({"for": code, "position": pos + 1, "axis": EVENT_AXES[pos]["axis"], "from": ch[pos], "to": new, "reason": why})
+        ch[pos] = new
+
+    if ch[0] != fam:
+        fix(0, fam, f"Section must match the category family: {code.split('-')[0]} is {fam}.")
+    for pos in (1, 2, 3, 5):
+        if ch[pos] not in ev_allowed(pos, ch):
+            why = (f"{ch[pos]} is not a {EVENT_AXES[pos]['axis'].lower()} value." if ch[pos] not in EVENT_AXES[pos]["values"]
+                   else f"{ch[pos]} is not valid after {'-'.join(ch[:1] if pos in (1, 5) else ch[:2])} in the validity tables.")
+            fix(pos, "Z", why)
+    if ch[4] not in ("Z", window):
+        fix(4, window, "The commute window is set by code from created_at; the model's value is ignored.")
+    ch[4] = window
+    if ch[6] not in MODEL_QUALIFIERS:
+        fix(6, "Z", "Only G (ongoing) comes from the model; single, repeat and corroborated are set by code.")
+    return "".join(ch)
+
+
+def derive_qualifiers(msgs):
+    """Position 7 from the batch: R repeat (same rider, same section and system), C corroborated (another
+    rider, same section, system and event), else G if the rider says it is ongoing, else S single report."""
+    evs = {m["id"]: [e for e in [m["label"].get("event")] + [s.get("event") for s in m["label"]["secondary"]] if e] for m in msgs}
+    who = {m["id"]: m["id"] if m["rider"] == "anonymous" else m["rider"] for m in msgs}
+
+    def q(m, e):
+        if ev_allowed(6, e) == {"Z"}:
+            return "Z"
+        if e[1] != "Z" and any(x[:2] == e[:2] for i in m["same_rider_as"] for x in evs.get(i, [])):
+            return "R"
+        if e[2] != "Z" and any(x[:3] == e[:3] for i, xs in evs.items() if who[i] != who[m["id"]] for x in xs):
+            return "C"
+        return "G" if e[6] == "G" else "S"
+    return q
+
+
+def ev_explain(e, fixed=(), source="model"):
+    """Positions, dashed form and the human-readable expansion, all from the axis tables. Z is left out of the expansion."""
+    pos = [{"pos": i + 1, "axis": a["axis"], "value": c, "meaning": a["values"].get(c, "?"),
+            "set_by": "code" if i == 4 or (i == 6 and c in "SRC") or i + 1 in fixed else source}
+           for i, (a, c) in enumerate(zip(EVENT_AXES, e))]
+    return {"code": e, "dashed": "-".join(e), "positions": pos,
+            "expansion": " · ".join(p["meaning"] for p in pos if p["value"] != "Z")}
 
 RULE = ("Any message describing risk of physical harm to riders or the public is severity 1, "
         "regardless of star rating, channel or volume. All severity 1 messages go upstairs together "
@@ -77,10 +187,21 @@ Label what the message describes, not its star rating or tone. A 5-star review c
 Code each message the way a medical coder codes an operation: one primary code, a secondary code for each other distinct issue, and modifiers for context. Coding rules:
 """ + "\n".join(f"{i}. {r}" for i, r in enumerate(CODING_RULES, 1)) + """
 
+Then code what happened the way a procedure coder codes an operation: for the primary code and for each secondary code, an event code built one position at a time from the rider's words only. Every position has a fixed meaning; use Z whenever the rider does not state it, and never guess. Every position must be valid for the positions before it (validity tables below), and the section must match the code's family (""" + ", ".join(f"{k}→{v}" for k, v in EVENT_FAMILY.items()) + """). You do not set the commute window: code sets it from the timestamp. For the qualifier, say G only when the rider's own words say it is ongoing or repeated ("again", "every day", "last few mornings", "keeps"), else Z: code sets single, repeat and corroborated from the batch.
+Event code positions:
+""" + "\n".join(f"{a['pos']}. {a['axis']} ({a['key']}): " + "; ".join(f"{k} = {v}" for k, v in a["values"].items())
+                + {"window": " [set by code; do not return it]", "qualifier": " [return only G or Z; code sets S, R and C]"}.get(a["key"], "")
+                for a in EVENT_AXES) + """
+Validity tables (Z is always allowed in positions 2-7):
+""" + "\n".join(f"- section {s}: who {'/'.join(t['who']) or 'Z only'}; " + "; ".join(
+    f"system {y}: event {'/'.join(r['event']) or 'Z'}, location {'/'.join(r['location']) or 'Z'}" for y, r in t["systems"].items())
+    for s, t in EVENT_TABLES.items()) + """
+
 Return exactly one label for every message id you are given, with:
 - code: the primary code, the issue that needs action soonest.
 - evidence: an exact substring copied from the message that documents the primary code.
-- secondary: one {code, evidence} per other distinct issue the rider describes, up to three, each with its own exact quote. An empty list when there is only one issue.
+- event: the event code for the primary code, as {section, system, event, location, who, qualifier}. Its documentation is the same evidence quote.
+- secondary: one {code, evidence, event} per other distinct issue the rider describes, up to three, each with its own exact quote and its own event code. An empty list when there is only one issue.
 - modifiers: any that apply, from: """ + "; ".join(f"{k} = {v}" for k, v in MODEL_MODIFIERS.items()) + """. An empty list when none apply.
 - severity: set by the most serious code. 1 = risk of physical harm to riders or the public. 2 = rider out of pocket (charged without service, charged twice, refund owed). 3 = service failure (late bus, broken AC, unannounced stop or route change, app bug that blocks booking, dirty bus, support not replying). 4 = minor issue, request, question or general sentiment. 5 = no issue.
 - reason: one plain sentence a human can check, naming what the rider described.
@@ -138,6 +259,10 @@ def label_mock(rows):
 
 
 def label_live(rows):
+    event = {"type": "object", "properties": {a["key"]: {"type": "string", "enum": list(a["values"]) if a["key"] != "qualifier"
+                                                          else list(MODEL_QUALIFIERS)}
+                                              for a in EVENT_AXES if a["key"] != "window"},
+             "required": [k for k in EV_KEYS if k != "window"], "additionalProperties": False}
     schema = {
         "type": "object",
         "properties": {"labels": {"type": "array", "items": {
@@ -148,17 +273,18 @@ def label_live(rows):
                 "severity": {"type": "integer", "enum": [1, 2, 3, 4, 5]},
                 "reason": {"type": "string"},
                 "evidence": {"type": "string"},
+                "event": event,
                 "secondary": {"type": "array", "items": {
                     "type": "object",
-                    "properties": {"code": {"type": "string", "enum": list(CODES)}, "evidence": {"type": "string"}},
-                    "required": ["code", "evidence"],
+                    "properties": {"code": {"type": "string", "enum": list(CODES)}, "evidence": {"type": "string"}, "event": event},
+                    "required": ["code", "evidence", "event"],
                     "additionalProperties": False,
                 }},
                 "modifiers": {"type": "array", "items": {"type": "string", "enum": list(MODEL_MODIFIERS)}},
                 "praise": {"type": "array", "items": {"type": "string", "enum": PRAISE}},
                 "praise_quote": {"type": "string"},
             },
-            "required": ["id", "code", "severity", "reason", "evidence", "secondary", "modifiers",
+            "required": ["id", "code", "severity", "reason", "evidence", "event", "secondary", "modifiers",
                          "praise", "praise_quote"],
             "additionalProperties": False,
         }}},
@@ -187,7 +313,7 @@ def apply_coding_rules(lab, text):
         elif not ev or ev not in text:
             why = "Evidence quote is not in the message."
         else:
-            sec.append({"code": c, "evidence": ev})
+            sec.append({"code": c, "evidence": ev, "event": s.get("event")})
             seen.add(c)
             continue
         dropped.append({"code": c, "reason": why})
@@ -196,10 +322,10 @@ def apply_coding_rules(lab, text):
     if saf and not (code or "").startswith("SAF-"):
         sec.remove(saf)
         if code and code != "NONE":
-            sec.insert(0, {"code": code, "evidence": lab.get("evidence", "")})
+            sec.insert(0, {"code": code, "evidence": lab.get("evidence", ""), "event": lab.get("event")})
         elif code == "NONE":
             dropped.append({"code": "NONE", "reason": "NONE is never combined with another code."})
-        lab.update(code=saf["code"], evidence=saf["evidence"], resequenced_from=code)
+        lab.update(code=saf["code"], evidence=saf["evidence"], event=saf.get("event"), resequenced_from=code)
         code = saf["code"]
     if code in (None, "NONE"):  # Rule 6: NONE stands alone (and no label means no codes at all)
         dropped += [{"code": s["code"], "reason": "NONE is never combined with another code."} for s in sec]
@@ -379,10 +505,35 @@ def triage(csv_text):
         }
         o = overrides.get(r["id"])
         m["label"] = {"code": o["code"], "severity": o["severity"], "reason": o["note"], "source": "human", "at": o["at"],
-                      "secondary": o.get("secondary", []), "modifiers": o.get("modifiers", [])} if o else lab
+                      "event": o.get("event"), "secondary": [dict(x) for x in o.get("secondary", [])],
+                      "modifiers": o.get("modifiers", [])} if o else lab
         derived = [k for k, on in (("RP", m["same_rider_as"]), ("TK", m["token_flag"]), ("PR", m["praise"])) if on]
         m["modifiers"] = m["label"]["modifiers"] + derived
+        # Event codes: each position checked against the tables, position 5 from the timestamp (never the model).
+        window = commute_window(r["created_at"])
+        m["event_fixes"] = []
+        for L in [m["label"]] + ([lab] if o else []):
+            fixes = m["event_fixes"] if L is m["label"] else []
+            if L.get("code"):
+                L["event"] = ev_validate(L.get("event"), L["code"], window, fixes)
+            for x in L["secondary"]:
+                x["event"] = ev_validate(x.get("event"), x["code"], window, fixes)
         msgs.append(m)
+
+    # Position 7 needs the whole batch: repeat (same rider) and corroborated (another rider).
+    qual = derive_qualifiers(msgs)
+    for m in msgs:
+        for L in [m["label"]] + ([m["model_label"]] if m["model_label"] is not m["label"] else []):
+            items = ([{"role": "primary", "x": L}] if L.get("event") else []) + [{"role": "secondary", "x": x} for x in L["secondary"]]
+            explained = []
+            for it in items:
+                x, said = it["x"], it["x"]["event"][6]
+                x["event"] = x["event"][:6] + qual(m, x["event"])
+                fixed = {f["position"] for f in m["event_fixes"] if f["for"] == x["code"]} if L is m["label"] else set()
+                explained.append(dict(ev_explain(x["event"], fixed, L.get("source", "model")), role=it["role"], **{"for": x["code"]},
+                                      evidence=x.get("evidence", ""), said_qualifier=said))
+            if L is m["label"]:
+                m["events"] = explained
 
     groups = defaultdict(list)
     for m in msgs:
@@ -453,6 +604,8 @@ def triage(csv_text):
             "rule": RULE, "token_rule": TOKEN_RULE, "escalation": esc, "groups": deferred,
             "messages": {m["id"]: m for m in msgs}, "codes": CODES, "secondary_only": secondary_only,
             "coding_rules": CODING_RULES, "modifiers": {**MODEL_MODIFIERS, **DERIVED_MODIFIERS},
+            "event_axes": EVENT_AXES, "event_tables": EVENT_TABLES, "event_family": EVENT_FAMILY,
+            "model_qualifiers": MODEL_QUALIFIERS,
             "who_pays_options": WHO_PAYS, "working": working,
             "prompt": {"system": SYSTEM_PROMPT, "user": model_input(rows),
                        "cost_system": COST_PROMPT, "cost_user": cost_input(assessable, by_id)}}
@@ -477,9 +630,26 @@ def save_override(body):
         raise ValueError("NONE stands alone: it is never combined with another code.")
     if not isinstance(mods, list) or any(x not in MODEL_MODIFIERS for x in mods):
         raise ValueError("Pick modifiers from the list.")
+    event = None
+    if body.get("event") is not None:  # the primary event code, checked position by position like the model's
+        ch = ev_chars(body["event"])
+        if ch is None:
+            raise ValueError("An event code has 7 positions, like S-D-U-S-M-P-R.")
+        if ch[0] != family(body["code"]):
+            raise ValueError(f"Event code section must be {family(body['code'])} for {body['code']}.")
+        for pos in (1, 2, 3, 5):
+            if ch[pos] not in ev_allowed(pos, ch):
+                raise ValueError(f"Event code position {pos + 1} ({EVENT_AXES[pos]['axis']}): {ch[pos]} is not valid "
+                                 f"after {'-'.join(ch[:1] if pos in (1, 5) else ch[:2])}.")
+        if ch[4] not in EVENT_AXES[4]["values"] or ch[6] not in EVENT_AXES[6]["values"]:
+            raise ValueError("Event code positions 5 and 7: pick from the list.")
+        # Position 5 and the single/repeat/corroborated qualifiers are always re-derived by code.
+        event = "".join(ch[:4] + ["Z", ch[5], ch[6] if ch[6] in MODEL_QUALIFIERS else "Z"])
     if not str(body.get("note", "")).strip():
         raise ValueError("Say why you're overriding. The note is the audit trail.")
     rec = {k: body[k] for k in ("batch", "id", "code", "severity")}
+    if event:
+        rec["event"] = event
     rec.update(secondary=[{"code": c, "evidence": ""} for c in sec], modifiers=list(dict.fromkeys(mods)))
     rec.update(note=str(body["note"])[:500], at=time.strftime("%Y-%m-%dT%H:%M:%S%z"))
     with OVERRIDES.open("a", encoding="utf-8") as f:
