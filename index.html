@@ -317,9 +317,17 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
 .slide .bul { gap:.15em; }
 .pbar { display:flex; align-items:center; gap:12px; padding:10px 20px; border-top:1px solid var(--line); background:var(--panel); font-size:14px; color:var(--muted); }
 
+/* Fast read: the first part of each word in bold so the eye fixates sooner. Only reading text gets it (see FR_REGIONS).
+   The ids keep it above any ".x b" rule (e.g. .lbl .why b), so a fixation never picks up a label's colour or margin. */
+.btn[aria-pressed="true"] { border-color:var(--accent); color:var(--accent); font-weight:650; }
+:is(#detail, #list, #good, #ginfo, #today, #slide) b.fr { font-weight:700; color:inherit; margin:0; font-size:inherit; display:inline; }
+/* Already-bold sentences drop to a normal base so the fixations still stand out. */
+.fastread .lbl .say { font-weight:400; }
+
 /* Print = the written report */
 #print { display:none; }
 @media print {
+  :is(#detail, #list, #good, #ginfo, #today, #slide) b.fr { font-weight:inherit; }
   body { background:#fff; color:#000; font-size:11pt; }
   .top, .wrap, #present, dialog { display:none !important; }
   #print { display:block; }
@@ -361,6 +369,7 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
   <button class="btn" id="bPrompt">Model prompt</button>
   <button class="btn" id="bRules">Coding rules</button>
   <button class="btn" id="bPrint">Print report</button>
+  <button class="btn" id="bFast" aria-pressed="true" title="Bold the start of each word in rider messages and prose so the eye moves faster">Fast read</button>
   <button class="btn" id="bTheme" aria-label="Toggle light or dark theme">Theme</button>
 </header>
 
@@ -1344,6 +1353,93 @@ $("#bTheme").onclick = () => {
   setTheme(cur === "dark" ? "light" : "dark");
 };
 
+/* ---------- Fast read ----------
+   Bolds the first part of each word in reading text only. Text nodes are split into plain text nodes and
+   <b class="fr"> elements built with createElement: the characters never change (search, evidence checks and
+   copy-paste see the same text) and rider text is never parsed as HTML. One MutationObserver re-applies it after
+   every put(); turning it off unwraps the <b class="fr"> again. */
+const FR_REGIONS = ["#detail .quote", "#detail .cq", "#detail .trace div", ".lbl .say", ".lbl .why", ".lbl .alsoone > div",
+  "#list .snip", "#good .q div", "#good li > div", "#good .why", "#today .bul", "#ginfo > .meta", "#ginfo dd",
+  ".bul", "#slide blockquote", "#slide p:not([style*='font-weight'])", "#slide li", "#slide td:not(:first-child)"].join(",");
+// Never inside these (ids, codes, chips, numbers' tiles, controls, headings, monospace, already-bold labels).
+const FR_SKIP = "button,input,textarea,select,option,label,form,summary,code,kbd,pre,samp,b,strong,cite,h1,h2,h3,h4,h5,h6," +
+  ".tag,.pill,.ev,.evbig,.mod,.codes,.costmeta,.kicker,.err,.more-dots,.src";
+const FR_OUT = ".wiz,dialog,#print,.top";  // the Change-label form, dialogs (coding rules legend), the print report
+let frDone = new WeakSet();                 // text nodes already handled (or created by us)
+// Skip ticket ids, codes and numbers: any chunk with a digit, or an all-caps token (AC, SAF-DRV-RASH, S-D-U-S-M-P-R).
+const frSkipChunk = c => /\d/.test(c) || /^[\p{Lu}-]{2,}$/u.test(c.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, ""));
+function frSplit(text) {
+  const out = []; let buf = "", any = false;
+  for (const chunk of text.split(/(\s+)/)) {
+    if (!chunk || /^\s+$/.test(chunk) || frSkipChunk(chunk)) { buf += chunk; continue; }
+    let pos = 0;
+    for (const w of chunk.matchAll(/\p{L}[\p{L}\p{M}]*/gu)) {
+      const cps = [...w[0]], letters = cps.filter(ch => /\p{L}/u.test(ch)).length;
+      if (letters < 2) continue;
+      let n = letters >= 4 ? Math.ceil(letters * 0.45) : 1, k = 0, seen = 0;
+      while (k < cps.length && seen < n) { if (/\p{L}/u.test(cps[k])) seen++; k++; }
+      while (k < cps.length && /\p{M}/u.test(cps[k])) k++;  // never split a letter from its combining mark
+      if (k >= cps.length && cps.length > 1) continue;        // nothing left to contrast with
+      const head = cps.slice(0, k).join("");
+      buf += chunk.slice(pos, w.index);
+      out.push(buf, head); buf = ""; any = true;
+      pos = w.index + head.length;
+    }
+    buf += chunk.slice(pos);
+  }
+  out.push(buf);
+  return any ? out : null;  // [plain, bold, plain, bold, ..., plain]
+}
+function frText(node) {
+  frDone.add(node);
+  const parts = frSplit(node.data);
+  if (!parts) return;
+  const frag = document.createDocumentFragment();
+  parts.forEach((s, i) => {
+    if (i % 2) { const b = document.createElement("b"); b.className = "fr"; b.textContent = s; frDone.add(b.firstChild); frag.append(b); }
+    else if (s) { const t = document.createTextNode(s); frDone.add(t); frag.append(t); }
+  });
+  node.replaceWith(frag);
+}
+function frApply() {
+  for (const region of document.querySelectorAll(FR_REGIONS)) {
+    if (region.closest(FR_OUT)) continue;
+    const walk = document.createTreeWalker(region, NodeFilter.SHOW_TEXT), todo = [];
+    for (let t = walk.nextNode(); t; t = walk.nextNode()) {
+      if (frDone.has(t) || !/\p{L}/u.test(t.data)) continue;
+      const s = t.parentElement.closest(FR_SKIP);
+      if (s && s !== region && region.contains(s)) continue;
+      todo.push(t);
+    }
+    todo.forEach(frText);
+  }
+}
+function frClear() {
+  const parents = new Set();
+  for (const b of document.querySelectorAll("b.fr")) { parents.add(b.parentNode); b.replaceWith(b.textContent); }
+  parents.forEach(p => p.normalize());
+  frDone = new WeakSet();
+}
+const frObs = new MutationObserver(() => frRun(frApply));
+const frRoots = [$(".wrap"), $("#present")];
+function frRun(fn) {  // our own edits must not wake the observer
+  frObs.disconnect(); fn(); frObs.takeRecords();
+  if (FR.on) frRoots.forEach(r => frObs.observe(r, { childList: true, subtree: true }));
+}
+const FR = { on: true };
+try { FR.on = localStorage.getItem("triage-fastread") !== "0"; } catch (e) {}
+function setFastRead(on) {
+  FR.on = on;
+  document.documentElement.classList.toggle("fastread", on);
+  $("#bFast").setAttribute("aria-pressed", String(on));
+  try { localStorage.setItem("triage-fastread", on ? "1" : "0"); } catch (e) {}
+  frRun(on ? frApply : frClear);
+}
+$("#bFast").onclick = () => setFastRead(!FR.on);
+document.documentElement.classList.toggle("fastread", FR.on);
+$("#bFast").setAttribute("aria-pressed", String(FR.on));
+frRun(FR.on ? frApply : () => {});
+
 document.addEventListener("keydown", e => {
   if (!S.data || document.querySelector("dialog[open]")) return;
   const typing = /INPUT|TEXTAREA|SELECT/.test(e.target.tagName);
@@ -1385,7 +1481,9 @@ window.addEventListener("hashchange", openHash);
   }
   const CLICKS = [  // [selector, feature name or fn(element)]; first match wins
     ["#vPresent", "feature/view/present"], ["#vReport", "feature/view/report"],
-    ["#bPrint", "feature/print"], ["#bTheme", "feature/theme"], ["#bBatch", "feature/batch/open"],
+    ["#bPrint", "feature/print"], ["#bTheme", "feature/theme"],
+    ["#bFast", b => "feature/fastread/" + (b.getAttribute("aria-pressed") === "true" ? "off" : "on")],  // runs before the toggle
+["#bBatch", "feature/batch/open"],
     ["#run", "feature/batch/run"], ["#reset", "feature/batch/reset"],
     ["#bPrompt", "feature/dialog/prompt"], ["#bRules", "feature/dialog/rules"],
     ["#pPrev", "feature/present/back"], ["#pNext", "feature/present/next"],
