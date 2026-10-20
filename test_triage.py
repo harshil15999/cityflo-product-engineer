@@ -336,7 +336,7 @@ for bad, msg in (("S-V-H-E-M-R-Z", "section must be O"), ("O-V-L-E-M-R-Z", "posi
 server.save_override(dict(base, event="O-V-H-E-E-R-G"))
 r7 = server.triage(CSV)
 m25 = r7["messages"]["FB-025"]
-assert m25["label"]["source"] == "human" and m25["label"]["event"] == "OVHEMRC", m25["label"]["event"]  # 08:39 is morning; corroborated
+assert m25["label"]["source"] == "human" and m25["label"]["event"] == "OVHEMRG", m25["label"]["event"]  # 08:39 is morning; other AC reports are on other routes, so not corroborated
 assert m25["events"][0]["expansion"].startswith("Operations · Vehicle (cabin, AC, seats, wifi) · AC not cooling or off · Throughout the ride")
 assert m25["model_label"]["event"] == "OVKZMRS"   # the model's (mock) event stays visible
 assert json.loads(server.OVERRIDES.read_text().splitlines()[-1])["event"] == "OVHEZRG"
@@ -352,5 +352,19 @@ assert server.analytics_url("http://127.0.0.1:8081/") == "http://127.0.0.1:8081"
 for bad in ("https://stats.example.com", "http://10.0.0.5:8081", "ftp://127.0.0.1", "http://127.0.0.1:8081/x?a=1",
             "http://user:pw@127.0.0.1:8081", "http://127.0.0.1.evil.com", "http://127.0.0.1:99999"):
     assert server.analytics_url(bad) is None, bad
+
+# Corroboration is tight: route-bound problems need the same route; safety also the same day and commute.
+mk = lambda route, at: {"route": route, "created_at": at}
+am, am2, pm = "2026-06-23T08:10:00+05:30", "2026-06-23T08:40:00+05:30", "2026-06-23T19:10:00+05:30"
+assert server.corroborates(mk("R1", am), "OTLZMRS", mk("R1", pm), "OTLZERS")        # late bus, same route
+assert not server.corroborates(mk("R1", am), "OTLZMRS", mk("R2", am), "OTLZMRS")    # late bus, other route
+assert not server.corroborates(mk("", am), "OTLZMRS", mk("", am), "OTLZMRS")        # no route: can't tell
+assert server.corroborates(mk("R1", am), "SDDHMGS", mk("R1", am2), "SDDZMGS")       # safety: same route, same morning
+assert not server.corroborates(mk("R1", am), "SDDHMGS", mk("R1", pm), "SDDZEGS")    # safety: same route, other commute
+assert not server.corroborates(mk("R1", am), "SDDHMGS", mk("R1", "2026-06-24T08:10:00+05:30"), "SDDHMGS")  # other day
+assert server.corroborates(mk("R1", am), "PPAYMRS", mk("R2", pm), "PPAYERS")        # payment fault: system-wide
+assert not server.corroborates(mk("R1", am), "OTLZMRS", mk("R1", am), "OVHZMRS")    # different event
+cor = {i for i, m in r["messages"].items() if m["label"].get("event", "Z" * 7)[6] == "C"}
+assert cor == {"FB-003", "FB-007", "FB-017", "FB-024"}, cor   # FB-014 (no route) is no longer corroborated
 
 print("all checks passed")

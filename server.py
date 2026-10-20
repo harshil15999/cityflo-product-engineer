@@ -146,18 +146,38 @@ def ev_validate(raw, code, window, fixes):
     return "".join(ch)
 
 
+# Systems tied to one bus or route (driver, vehicle, capacity, timetable, route/stop): another rider only
+# corroborates a report on the SAME route. System-wide systems (pass, gateway, refund, support, app,
+# tracking, whole service) can be corroborated from any route, because one fault there hits everyone.
+ROUTE_BOUND = set("DVCTR")
+
+
+def corroborates(m, e, o, x):
+    """Does event x in message o (another rider) back up event e in message m?"""
+    if x[:3] != e[:3]:
+        return False                      # same section, part of the service and event
+    if e[1] in ROUTE_BOUND:
+        if not m["route"] or m["route"] != o["route"]:
+            return False                  # different bus or route: a different incident
+        if e[0] == "S" and (m["created_at"][:10] != o["created_at"][:10]
+                            or commute_window(m["created_at"]) != commute_window(o["created_at"])):
+            return False                  # safety: same day and same commute, so likely the same bus and driver
+    return True
+
+
 def derive_qualifiers(msgs):
     """Position 7 from the batch: R repeat (same rider, same section and system), C corroborated (another
-    rider, same section, system and event), else G if the rider says it is ongoing, else S single report."""
+    rider, see corroborates()), else G if the rider says it is ongoing, else S single report."""
     evs = {m["id"]: [e for e in [m["label"].get("event")] + [s.get("event") for s in m["label"]["secondary"]] if e] for m in msgs}
     who = {m["id"]: m["id"] if m["rider"] == "anonymous" else m["rider"] for m in msgs}
+    by_id = {m["id"]: m for m in msgs}
 
     def q(m, e):
         if ev_allowed(6, e) == {"Z"}:
             return "Z"
         if e[1] != "Z" and any(x[:2] == e[:2] for i in m["same_rider_as"] for x in evs.get(i, [])):
             return "R"
-        if e[2] != "Z" and any(x[:3] == e[:3] for i, xs in evs.items() if who[i] != who[m["id"]] for x in xs):
+        if e[2] != "Z" and any(corroborates(m, e, by_id[i], x) for i, xs in evs.items() if who[i] != who[m["id"]] for x in xs):
             return "C"
         return "G" if e[6] == "G" else "S"
     return q
