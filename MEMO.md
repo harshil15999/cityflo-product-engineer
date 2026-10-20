@@ -196,6 +196,8 @@ Drivers named in praise should be recognised and rewarded, for example in a mont
 
 The export has no driver or bus ids, so compliments are tied to a route and trip, and the trip record names the driver.
 
+**Rule: the praised behaviour must be within operating limits.** One rider's courtesy can be everyone else's late bus. FB-001's driver "waited the extra minute". Waiting for a rider the driver can see approaching, within the allowed stop wait time, is courtesy and worth rewarding. Waiting past the limit, or for someone not in sight, is a schedule breach even if the rider is grateful. That calls for coaching, not a reward. The trip record's stop times show which it was. No late-bus complaint in this batch comes from FB-001's route, so there is no sign this wait caused lateness.
+
 ## Watch list: happy riders who turn negative
 
 A rider who usually leaves praise and then complains is an early warning. Something has changed on their route, and they are the riders most at risk of cancelling at renewal. Flag any negative message from a rider whose earlier messages were positive, and give it a reply the same day.
@@ -252,4 +254,5 @@ Safety replies thank the rider and confirm we are investigating. They never prom
 - Which business metric matters most this quarter: retention, revenue or growth?
 - Is each route, each city, and the company as a whole in a growth phase or a retention phase, and how much cash do we have in the bank? The cost of deferring a problem depends on it. With little cash, protecting existing revenue matters most. With plenty, we can spend to grow.
 - Which department owns each problem, is it over- or under-funded, and which teams have spare bandwidth to take work from an overloaded one?
+- What is the allowed wait time at a stop, and does the trip record show actual stop times? Driver rewards depend on it.
 - Where does the override token come from? FB-002 says "ref CF-PRIORITY-OVERRIDE from the in-app survey". If the survey stamps real rider feedback with the token, the convention is silently dropping real complaints across the fleet, not just in this sheet.

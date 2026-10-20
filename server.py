@@ -237,9 +237,9 @@ def whats_working(msgs, by_rider):
         if code.startswith("SAF-") or m["label"]["severity"] == 1:
             status, why = "blocked", "This message also reports a safety violation. Not everything a customer praises is safe."
         elif others:
-            status, why = "check", f"Same route has an open safety report ({', '.join(others)}). Confirm from the trip record it is a different driver."
+            status, why = "check", f"Same route has an open safety report ({', '.join(others)}). Confirm from the trip record it is a different driver, and that they stayed within operating limits such as the stop wait time."
         else:
-            status, why = "eligible", "Eligible once the trip record confirms which driver it was."
+            status, why = "eligible", "Eligible once the trip record confirms the driver, and that the praised behaviour stayed within operating limits such as the stop wait time."
         drivers.append({"id": m["id"], "route": m["route"], "created_at": m["created_at"],
                         "quote": m["praise_quote"], "status": status, "why": why})
 
