@@ -899,7 +899,8 @@ function qualWhy(m, e) {
 function howRows(m, e, cat) {
   const fx = (m.event_fixes || []).filter(f => f.for === cat);
   const quote = e.evidence && (m.text || "").includes(e.evidence) ? e.evidence : "";
-  const by = p => p.set_by === "code" ? "code" : p.set_by === "human" ? "human" : "model";
+  // Section always follows the category code (server enforces it), so position 1 is code's call.
+  const by = p => p.pos === 1 || p.set_by === "code" ? "code" : p.set_by === "human" ? "human" : "model";
   const basis = p => {
     if (p.pos === 1) return `follows the category ${cat} (${lc(p.meaning)})`;
     if (p.pos === 5) { const x = ist(m.created_at); return x ? `sent at ${x.hm} IST → ${lc(p.meaning)}` : "no usable timestamp"; }
