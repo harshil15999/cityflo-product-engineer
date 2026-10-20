@@ -78,7 +78,8 @@ button { cursor:pointer; }
 /* Workspace */
 .work { display:grid; grid-template-columns:290px minmax(0, 1fr) minmax(400px, 36%); gap:16px; align-items:start; }
 .panel { background:var(--panel); border:1px solid var(--line); border-radius:12px; }
-.sticky { position:sticky; top:72px; max-height:calc(100vh - 88px); overflow:auto; }
+/* --head-h is the real header height (it wraps on smaller screens), set from JS. */
+.sticky { position:sticky; top:calc(var(--head-h, 64px) + 8px); max-height:calc(100vh - var(--head-h, 64px) - 16px); overflow:auto; }
 .nav { padding:14px; }
 .nav input[type=search] { width:100%; padding:8px 11px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); }
 .chips { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; }
@@ -106,7 +107,7 @@ button { cursor:pointer; }
 .dot { width:10px; height:10px; border-radius:50%; flex:none; background:var(--s4); }
 .d1{background:var(--s1)} .d2{background:var(--s2)} .d3{background:var(--s3)} .d4{background:var(--s4)} .d5{background:var(--s5)}
 
-.ginfo { padding:16px 18px; margin-bottom:12px; scroll-margin-top:124px; }
+.ginfo { padding:16px 18px; margin-bottom:12px; scroll-margin-top:calc(var(--head-h, 64px) + 12px); }
 .ginfo h2 { margin:0 0 4px; font-size:22px; letter-spacing:-.01em; }
 .ginfo dl { display:grid; grid-template-columns:150px 1fr; gap:6px 14px; margin:12px 0 0; font-size:15px; }
 .ginfo dt { color:var(--muted); font-weight:600; }
@@ -402,6 +403,12 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
 </dialog>
 
 <script>
+// Keep sticky panels just below the header, whatever its height after wrapping.
+(() => {
+  const head = document.querySelector(".top");
+  const set = () => document.documentElement.style.setProperty("--head-h", head.getBoundingClientRect().height + "px");
+  set(); if (window.ResizeObserver) new ResizeObserver(set).observe(head); else addEventListener("resize", set);
+})();
 const $ = s => document.querySelector(s);
 const S = { data: null, csv: null, group: "esc", msg: null, list: [], slide: 0, aspect: null,
             f: { q: "", sev: new Set(), route: "", token: false, human: false, check: false, repeat: false } };
@@ -740,7 +747,7 @@ function renderList() {
   if (!ms.length) { put($("#list"), el("div", { class: "empty" }, "No messages match these filters.")); return; }
   put($("#list"), ...ms.map(m => el("button", {
     class: "item", role: "option", "aria-current": String(m.id === S.msg), "data-id": m.id,
-    onclick: () => { S.msg = m.id; renderList(); renderDetail(); setHash(); }
+    onclick: () => { S.msg = m.id; renderList(); renderDetail(); setHash(); clearHeader(); }
   },
     el("div", { class: "row" }, el("b", {}, m.id), pill(m.label.severity), codeTags(m),
       m.route || "no route", m.stars ? `· ${m.stars}★` : "",
@@ -884,6 +891,12 @@ function select(key) { S.group = key; S.msg = null; renderNav(); renderGroupInfo
 // Open exactly this ticket: leave Present, show a group that holds it, clear only the filters hiding it,
 // then bring the ticket (detail panel) into view and flash it.
 const CHECKS = { token: "fToken", human: "fHuman", check: "fCheck", repeat: "fRepeat" };
+// After opening a ticket, make sure the header never covers the top of the ticket panel.
+function clearHeader() {
+  const box = $("#detail"), min = $(".top").getBoundingClientRect().bottom + 8, top = box.getBoundingClientRect().top;
+  if (top < min) scrollBy({ top: top - min });
+}
+
 function jump(id) {
   const m = S.data && M(id);
   if (!m) return;
@@ -903,6 +916,7 @@ function jump(id) {
   // Narrow layout: the ticket sits under the list; put the item at the bottom of its own list, then show the ticket.
   if (getComputedStyle(box).position === "sticky") item?.scrollIntoView({ behavior, block: "center" });
   else { item?.scrollIntoView({ block: "nearest" }); box.scrollIntoView({ behavior, block: "start" }); }
+  setTimeout(clearHeader, behavior === "smooth" ? 450 : 0);
   box.classList.remove("flash"); void box.offsetWidth; box.classList.add("flash");
   clearTimeout(jump.t); jump.t = setTimeout(() => box.classList.remove("flash"), 1000);
 }
