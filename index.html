@@ -13,22 +13,6 @@
   --s4:#4a5160; --s4bg:#eef0f3; --s5:#868c97; --s5bg:#f4f5f7;
   --mark:#ffe17a; --mark2:#fff6d1; --flag:#fff1c2; --human:#dcf1ff; --ok:#147a3d; --okbg:#e3f4e9;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg:#0e1014; --panel:#171a20; --panel2:#1c2028; --ink:#e9ebf0; --muted:#a3a9b5; --line:#2b303b;
-    --accent:#6f93ff; --accent-ink:#0e1014; --sel:#1d2945;
-    --s1:#ff6b70; --s1bg:#3b1618; --s2:#f2a33a; --s2bg:#3a2810; --s3:#82a6ff; --s3bg:#172240;
-    --s4:#b9bfca; --s4bg:#232831; --s5:#8a909b; --s5bg:#1c2027;
-    --mark:#6e5a10; --mark2:#3a3216; --flag:#45380c; --human:#103449; --ok:#5fd18b; --okbg:#123322;
-  }
-}
-:root[data-theme="dark"] {
-  --bg:#0e1014; --panel:#171a20; --panel2:#1c2028; --ink:#e9ebf0; --muted:#a3a9b5; --line:#2b303b;
-  --accent:#6f93ff; --accent-ink:#0e1014; --sel:#1d2945;
-  --s1:#ff6b70; --s1bg:#3b1618; --s2:#f2a33a; --s2bg:#3a2810; --s3:#82a6ff; --s3bg:#172240;
-  --s4:#b9bfca; --s4bg:#232831; --s5:#8a909b; --s5bg:#1c2027;
-  --mark:#6e5a10; --mark2:#3a3216; --flag:#45380c; --human:#103449; --ok:#5fd18b; --okbg:#123322;
-}
 * { box-sizing:border-box; }
 body { margin:0; background:var(--bg); color:var(--ink);
   font:16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", sans-serif;
@@ -45,6 +29,7 @@ button { cursor:pointer; }
 .spacer { flex:1; }
 .btn { border:1px solid var(--line); background:var(--panel); padding:7px 13px; border-radius:8px; font-size:14px; }
 .btn:hover { border-color:var(--accent); }
+a.btn { display:inline-block; color:inherit; text-decoration:none; }
 .seg { display:inline-flex; border:1px solid var(--line); border-radius:9px; overflow:hidden; }
 .seg button { border:0; background:transparent; padding:7px 16px; font-size:14px; font-weight:600; }
 .seg button[aria-pressed="true"] { background:var(--accent); color:var(--accent-ink); }
@@ -72,7 +57,6 @@ button { cursor:pointer; }
 .kicker { font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
 .esc .kicker { color:var(--s1); } .act .kicker { color:var(--s2); }
 .tcard h3 { font-size:23px; line-height:1.25; margin:4px 0 6px; letter-spacing:-.01em; }
-.tcard p { margin:8px 0 0; font-size:15.5px; }
 .tcard .who { color:var(--muted); font-size:14px; }
 
 /* Workspace */
@@ -134,7 +118,7 @@ button { cursor:pointer; }
 
 .detail { padding:18px 20px; }
 /* The column stretches to the row's height so the sticky ticket panel actually sticks while the list scrolls. */
-.detailcol { align-self:stretch; }
+.detailcol { align-self:stretch; min-width:0; } /* min-width: a long event table must not widen the one-column grid on phones */
 .detail.flash { outline:3px solid var(--accent); outline-offset:2px; }
 .detail h2 { margin:0; font-size:24px; }
 .detail .sub { color:var(--muted); font-size:14px; margin:2px 0 10px; }
@@ -153,7 +137,6 @@ mark.m2 { background:var(--mark2); border-bottom:2px dotted var(--s2); }
 .evh { display:flex; flex-wrap:wrap; align-items:center; gap:4px 6px; }
 .evh .ev { font-size:13.5px; }
 .evh .meta { margin:0; font-size:13px; flex-basis:100%; }
-.detailcol { min-width:0; } /* a long event table must not widen the one-column grid on phones */
 dialog .evv { display:inline-block; margin:0 10px 2px 0; font-size:14px; }
 dialog .evv code, dialog dt code { font:700 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 dialog .evtables { font-size:13.5px; margin:4px 0 12px; padding-left:1.2em; }
@@ -312,7 +295,6 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
 .slide .card ul { margin:.2em 0 0; padding-left:1.1em; }
 .slide .card li { font-size:clamp(18px, 1.6vw, 28px); margin:.15em 0; }
 .slide td li { font-size:inherit; }
-.slide td .lbl { display:none; }
 .slide td .bul { margin:0; }
 .slide .bul { gap:.15em; }
 .pbar { display:flex; align-items:center; gap:12px; padding:10px 20px; border-top:1px solid var(--line); background:var(--panel); font-size:14px; color:var(--muted); }
@@ -369,8 +351,7 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
   <button class="btn" id="bPrompt">Model prompt</button>
   <button class="btn" id="bRules">Coding rules</button>
   <button class="btn" id="bPrint">Print report</button>
-  <button class="btn" id="bFast" aria-pressed="true" title="Bold the start of each word in rider messages and prose so the eye moves faster">Fast read</button>
-  <button class="btn" id="bTheme" aria-label="Toggle light or dark theme">Theme</button>
+  <button class="btn" id="bFast" aria-pressed="false" title="Bold the start of each word in rider messages and prose so the eye moves faster">Fast read</button>
 </header>
 
 <div class="wrap">
@@ -618,9 +599,8 @@ function virtualGroups() {
 // Groups named only by secondary codes: no primary ticket, so they open the tickets that also mention them.
 const alsoGroups = () => (S.data.secondary_only || []).map(g => Object.assign({}, g, { key: "also:" + g.key, label: g.title,
   ids: g.also_ids || [], alsoOnly: true, severity: 4 }));
-const KEY_ALIAS = { messages: "all", riders: "all" };
-const groupOf = k => { k = KEY_ALIAS[k] || k;
-  return virtualGroups().find(g => g.key === k) || groups().find(g => g.key === k) || alsoGroups().find(g => g.key === k); };
+const groupOf = k =>
+   virtualGroups().find(g => g.key === k) || groups().find(g => g.key === k) || alsoGroups().find(g => g.key === k);
 
 // Each filter: is it active, and does message m pass it? (filtered() and jump() share these.)
 const FILTERS = {
@@ -1177,8 +1157,6 @@ async function wizSave(m) {
 }
 
 function select(key) { S.group = key; S.msg = null; renderNav(); renderGroupInfo(); renderList(); renderDetail(); }
-// Open exactly this ticket: leave Present, show a group that holds it, clear only the filters hiding it,
-// then bring the ticket (detail panel) into view and flash it.
 const CHECKS = { token: "fToken", human: "fHuman", check: "fCheck", repeat: "fRepeat" };
 // After opening a ticket, make sure the header never covers the top of the ticket panel.
 function clearHeader() {
@@ -1186,6 +1164,8 @@ function clearHeader() {
   if (top < min) scrollBy({ top: top - min });
 }
 
+// Open exactly this ticket: leave Present, show a group that holds it, clear only the filters hiding it,
+// then bring the ticket (detail panel) into view and flash it.
 function jump(id) {
   const m = S.data && M(id);
   if (!m) return;
@@ -1345,14 +1325,6 @@ $("#route").onchange = e => { S.f.route = e.target.value; renderNav(); renderLis
 for (const [id, k] of [["fToken", "token"], ["fHuman", "human"], ["fCheck", "check"], ["fRepeat", "repeat"]])
   $("#" + id).onchange = e => { S.f[k] = e.target.checked; renderNav(); renderList(); renderDetail(); };
 
-const THEMES = ["light", "dark"];
-function setTheme(t) { document.documentElement.dataset.theme = t; try { localStorage.setItem("triage-theme", t); } catch (e) {} }
-try { const t = localStorage.getItem("triage-theme"); if (THEMES.includes(t)) document.documentElement.dataset.theme = t; } catch (e) {}
-$("#bTheme").onclick = () => {
-  const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-  setTheme(cur === "dark" ? "light" : "dark");
-};
-
 /* ---------- Fast read ----------
    Bolds the first part of each word in reading text only. Text nodes are split into plain text nodes and
    <b class="fr"> elements built with createElement: the characters never change (search, evidence checks and
@@ -1426,8 +1398,8 @@ function frRun(fn) {  // our own edits must not wake the observer
   frObs.disconnect(); fn(); frObs.takeRecords();
   if (FR.on) frRoots.forEach(r => frObs.observe(r, { childList: true, subtree: true }));
 }
-const FR = { on: true };
-try { FR.on = localStorage.getItem("triage-fastread") !== "0"; } catch (e) {}
+const FR = { on: false };
+try { FR.on = localStorage.getItem("triage-fastread") === "1"; } catch (e) {}  // off unless the user turned it on
 function setFastRead(on) {
   FR.on = on;
   document.documentElement.classList.toggle("fastread", on);
@@ -1481,9 +1453,9 @@ window.addEventListener("hashchange", openHash);
   }
   const CLICKS = [  // [selector, feature name or fn(element)]; first match wins
     ["#vPresent", "feature/view/present"], ["#vReport", "feature/view/report"],
-    ["#bPrint", "feature/print"], ["#bTheme", "feature/theme"],
+    ["#bPrint", "feature/print"],
     ["#bFast", b => "feature/fastread/" + (b.getAttribute("aria-pressed") === "true" ? "off" : "on")],  // runs before the toggle
-["#bBatch", "feature/batch/open"],
+    ["#bBatch", "feature/batch/open"],
     ["#run", "feature/batch/run"], ["#reset", "feature/batch/reset"],
     ["#bPrompt", "feature/dialog/prompt"], ["#bRules", "feature/dialog/rules"],
     ["#pPrev", "feature/present/back"], ["#pNext", "feature/present/next"],
@@ -1536,6 +1508,9 @@ window.addEventListener("hashchange", openHash);
   fetch("/api/config").then(r => r.ok ? r.json() : {}).then(c => {
     const url = c && c.analytics_url;
     if (!url || !/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(url)) return;
+    // A plain link to the local GoatCounter dashboard; clicking it sends nothing.
+    $(".top").append(el("a", { class: "btn", id: "bUsage", href: url, target: "_blank", rel: "noopener noreferrer",
+      title: "Feature-usage analytics (GoatCounter)" }, "Usage"));
     const s = document.createElement("script");
     s.async = true; s.src = url + "/count.js"; s.dataset.goatcounter = url + "/count";
     s.dataset.goatcounterSettings = JSON.stringify({ no_onload: true, no_events: true, allow_local: true });

@@ -780,7 +780,7 @@ def triage(csv_text):
             g["cost"] = a["cost"]
         o = cost_overrides.get(g["key"])
         if o:
-            g.update(cost=o["cost"], who_pays=o["who_pays"], cost_source="human", cost_note=o["note"], cost_at=o["at"])
+            g.update(cost=o["cost"], who_pays=o["who_pays"], cost_source="human", cost_note=o["note"])
 
     if esc:  # after the cost is final, so the non-safety cost bullet matches what the page shows
         esc["why_today"] = why_today(esc, [by_id[i] for i in esc["ids"]], msgs)
@@ -879,6 +879,9 @@ def analytics_url(raw=None):
     return raw.rstrip("/")
 
 
+ANALYTICS_URL = analytics_url()  # read once, so a bad value warns once
+
+
 class Handler(BaseHTTPRequestHandler):
     def send(self, code, body, ctype="application/json"):
         data = body if isinstance(body, bytes) else json.dumps(body, ensure_ascii=False).encode()
@@ -895,7 +898,7 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/api/triage":
             self.run(DEFAULT_CSV.read_text(encoding="utf-8"))
         elif path == "/api/config":
-            self.send(200, {"analytics_url": analytics_url()})
+            self.send(200, {"analytics_url": ANALYTICS_URL})
         else:
             self.send(404, {"error": "not found"})
 
