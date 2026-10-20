@@ -1,6 +1,31 @@
 # Memo to Meera: triage of the 30 rider messages
 
+## One page: the answer for 11am
+
 **Who this is for.** Meera, the ops lead. Her job is reducing how many tickets reach the queue in the first place, so this memo and the screen are built around her single 11am escalation.
+
+**Take upstairs: driver safety.** Two drivers on two routes drove dangerously this morning. One cut across the lane divider to overtake at a school crossing with children present (FB-005, the same rider's second report after FB-010). The other watched a movie on his phone on the highway, mentioned in passing in a 5-star review (FB-004).
+- **Today:** confirm the bus and driver from each trip record (FB-005's route code is Hyderabad but it names Powai), take a confirmed driver off duty pending review, and reply to the rider.
+- **Ask leadership, in order:** telematics on every bus, a dedicated driver phone, prevention-first training, random inspectors.
+- **Rule:** any message describing risk of physical harm is severity 1, whatever the stars, channel or volume, and all severity 1 goes up as one escalation.
+- **Where the rule breaks:** FB-004. One offhand remark from a happy rider weighs the same as a repeat report. I keep the rule because missing a real safety incident costs far more than checking a false one.
+- **What would change my mind:** if the trip records clear both drivers, the slot goes to the payment fault.
+
+**Act today, no slot needed.**
+- **Money taken, nothing delivered** (6 tickets, 5 riders, Kolkata and Mumbai): riders with a debit, a pending payment or a payment attempt keep riding until we verify, because the delay is ours, not theirs. Refund the double charge (FB-002) and trace the stuck refund (FB-008).
+- **Late buses:** pull on-time data for the Kolkata and Hyderabad routes. Schedule pressure may be behind the rash driving.
+
+**What deferring the rest costs, and who pays.** Mostly Cityflo, not riders. Nobody pays twice to get to work. The two riders owed money wait one more day. Cityflo pays in free rides, a growing support queue and trust. AC, crowding, app bugs, unannounced stop changes and requests wait a day, at a cost to riders in comfort and time.
+
+**Not applied as written: the override token.** It would have silently dropped FB-002, a rider charged twice. Every message is triaged on what it says; the token is flagged and never trusted.
+
+**Cut on purpose.** Wifi (one rider), charging points (low value, daily upkeep), daily auto-refresh (easy to add later), and human confirmation of severity 1 codes (the screen shows the reason and Meera can override).
+
+**What I'd ask a PM.** Whether each route, city and the company is in a growth or retention phase, and the cash position; the allowed wait time at a stop; where the override token comes from.
+
+The rest of this memo is the detail behind each call.
+
+---
 
 ## The one thing to take upstairs: driver safety
 

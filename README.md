@@ -2,6 +2,11 @@
 
 A one-page tool that triages a batch of rider feedback (`data/feedback.csv`, 30 messages) for Meera, the ops lead, who can take one thing upstairs at 11am. It labels each message with a code, a severity and anything the rider sincerely praises, picks the one escalation, groups everything else as "deferred to tomorrow" with an owner, fix, cost of waiting (and who pays it) and risk, shows what is working, and lets a human override any label or cost with a required note. It is a single Python standard-library server (`server.py`) and one HTML page (`index.html`). The reasoning behind the decisions is in [MEMO.md](MEMO.md).
 
+**Start here:**
+- [MEMO.md](MEMO.md): the memo to Meera — the one thing to escalate, the decision records, what's deferred and what it costs, what's cut.
+- [docs/walkthrough.mp4](docs/walkthrough.mp4): a short captioned tour of the dashboard (mock data, no audio).
+- [decisions.jsonl](decisions.jsonl): the steering ledger. Each line quotes a message the candidate typed and anchors it in the raw session transcript as `turn N (transcript line L)`: N counts only the candidate's typed prompts in order (not tool results or task notifications), and L is the line in the raw `.jsonl` transcript. A few decisions were typed while the agent was mid-task; those are anchored as `message sent mid-turn (transcript line L)`.
+
 ## Run it (mock mode, no setup)
 
 ```
@@ -16,9 +21,11 @@ You can paste or upload another CSV with the same columns on the page. In mock m
 
 ```
 pip install -r requirements.txt
-export ANTHROPIC_API_KEY=...
+read -rs ANTHROPIC_API_KEY && export ANTHROPIC_API_KEY   # paste the key; it isn't echoed or saved to shell history
 python3 server.py --live
 ```
+
+The key is read from the environment only. It is never written to a file, logged, sent to the page, or included in prompts, and `.env` files are git-ignored. Don't paste a key into a chat with a coding agent: session transcripts are kept on disk.
 
 Live mode makes two structured-JSON calls to Claude (`claude-opus-5-5`):
 1. **Labels**: per message, a primary code, secondary codes and modifiers (see Coding system), severity, reason, exact evidence quote, and what the rider sincerely praises (with an exact quote). If this call fails, the page shows the error instead of crashing.
@@ -136,3 +143,5 @@ This was not deployed. If a public link is wanted, the cheapest options are a fr
 - `data/feedback.csv`, `DATA_GUIDE.md`: the input and its description.
 - `data/labels.json`: codes, event-code axes and validity tables, group write-ups (owner, fix, cost, who pays, risk; the cost text is also the fallback) and the mock labels.
 - `MEMO.md`: the memo to Meera.
+- `decisions.jsonl`: the steering ledger (decisions anchored to the raw transcript).
+- `docs/walkthrough.mp4`: the captioned walkthrough video.
