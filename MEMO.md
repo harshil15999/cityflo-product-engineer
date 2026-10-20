@@ -189,13 +189,18 @@ This is what riders come for and pay a premium for, so it is what we protect fir
 
 Drivers named in praise should be recognised and rewarded, for example in a monthly recognition with a bonus, owned by fleet operations. It reinforces the prevention-first culture we are asking leadership for.
 
-**Rule: check the safety record before rewarding.** Not everything a customer says is gold. Praise is not proof of safe driving, and a safety violation is never outweighed by a happy rider. FB-004 is the clearest case: a rider gives 5 stars, calls the bus "the best part of my morning", and in the same message describes the driver watching a movie on the highway. A reward goes only to a driver with no open safety report. In this batch, the FB-001 driver qualifies once the trip record confirms who it was; the FB-004 driver does not.
+**Rule: check the safety record before rewarding.** Not everything a customer says is gold. Praise is not proof of safe driving, and a safety violation is never outweighed by a happy rider. FB-004 is the clearest case: a rider gives 5 stars, calls the bus "the best part of my morning", and in the same message describes the driver watching a movie on the highway. A reward goes only to a driver with no open safety report. In this batch:
+- **FB-004's driver is blocked.** The same message reports the safety violation.
+- **FB-001's driver needs a check first.** FB-001 is on the same route as FB-004, about 20 minutes later, so confirm from the trip record that it is a different driver before rewarding.
+- **FB-012's driver is eligible** once the trip record confirms who it was.
+
+The export has no driver or bus ids, so compliments are tied to a route and trip, and the trip record names the driver.
 
 ## Watch list: happy riders who turn negative
 
 A rider who usually leaves praise and then complains is an early warning. Something has changed on their route, and they are the riders most at risk of cancelling at renewal. Flag any negative message from a rider whose earlier messages were positive, and give it a reply the same day.
 
-This needs rider history across batches. The masked handle on the dashboard changes every run so it can't be reversed, so the watch list needs a stable masked key kept secret by ops. It can't be checked within this single batch.
+The dashboard already does this within a batch. In this batch, no rider praised us and then complained. Eight messages praise one thing while complaining about another (FB-004, FB-015, FB-019, FB-022, FB-023, FB-025, FB-026, FB-027). These are happy riders with a problem, and they are listed so their problem gets fixed before they stop being happy. Tracking across batches needs a stable masked rider key kept secret by ops, because the dashboard's masked handle changes every run so it can't be reversed.
 
 ## Who owns each problem
 

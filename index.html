@@ -10,7 +10,7 @@
   --accent:#2c56c9; --accent-ink:#ffffff; --sel:#eaf0ff;
   --s1:#b91c22; --s1bg:#fdeced; --s2:#a85a06; --s2bg:#fff3e2; --s3:#1d4fd0; --s3bg:#e9f0ff;
   --s4:#4a5160; --s4bg:#eef0f3; --s5:#868c97; --s5bg:#f4f5f7;
-  --mark:#ffe17a; --flag:#fff1c2; --human:#dcf1ff; --ok:#147a3d;
+  --mark:#ffe17a; --flag:#fff1c2; --human:#dcf1ff; --ok:#147a3d; --okbg:#e3f4e9;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -18,7 +18,7 @@
     --accent:#6f93ff; --accent-ink:#0e1014; --sel:#1d2945;
     --s1:#ff6b70; --s1bg:#3b1618; --s2:#f2a33a; --s2bg:#3a2810; --s3:#82a6ff; --s3bg:#172240;
     --s4:#b9bfca; --s4bg:#232831; --s5:#8a909b; --s5bg:#1c2027;
-    --mark:#6e5a10; --flag:#45380c; --human:#103449; --ok:#5fd18b;
+    --mark:#6e5a10; --flag:#45380c; --human:#103449; --ok:#5fd18b; --okbg:#123322;
   }
 }
 :root[data-theme="dark"] {
@@ -26,7 +26,7 @@
   --accent:#6f93ff; --accent-ink:#0e1014; --sel:#1d2945;
   --s1:#ff6b70; --s1bg:#3b1618; --s2:#f2a33a; --s2bg:#3a2810; --s3:#82a6ff; --s3bg:#172240;
   --s4:#b9bfca; --s4bg:#232831; --s5:#8a909b; --s5bg:#1c2027;
-  --mark:#6e5a10; --flag:#45380c; --human:#103449; --ok:#5fd18b;
+  --mark:#6e5a10; --flag:#45380c; --human:#103449; --ok:#5fd18b; --okbg:#123322;
 }
 * { box-sizing:border-box; }
 body { margin:0; background:var(--bg); color:var(--ink);
@@ -128,10 +128,38 @@ mark { background:var(--mark); color:inherit; padding:0 2px; border-radius:3px; 
 .trace small { display:block; font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:2px; }
 .ov { display:grid; grid-template-columns:1fr 130px; gap:8px; margin-top:8px; }
 .ov select, .ov input { padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); }
-.ov input { grid-column:1 / -1; }
+.ov input, .ov .hint { grid-column:1 / -1; }
+.ov select { min-width:0; text-overflow:ellipsis; }
+.ov .hint { color:var(--muted); font-size:13.5px; margin-top:-2px; }
 .ov .btn { grid-column:1 / -1; background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:650; }
 .links button { border:0; background:none; color:var(--accent); padding:0; font:inherit; text-decoration:underline; }
 .err { color:var(--s1); font-weight:650; }
+.pok{color:var(--ok);background:var(--okbg)}
+.bul { margin:2px 0 0; padding-left:1.15em; display:grid; gap:3px; }
+.tcard .bul { margin-top:8px; font-size:15.5px; }
+.costmeta { display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin-top:6px; }
+.tag.src { background:transparent; border-style:dashed; color:var(--muted); font-weight:500; white-space:normal; }
+.costmeta .lbl { color:var(--muted); font-size:13px; }
+.cov { display:grid; gap:8px; margin-top:8px; }
+.cov textarea, .cov input[type=text] { width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); }
+.cov .checks { display:flex; flex-wrap:wrap; gap:4px 14px; margin:0; }
+.cov .btn { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:650; justify-self:start; }
+
+/* What's working */
+.good { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:14px; margin-bottom:26px; }
+.good .panel { padding:14px 16px; }
+.good h3 { margin:0 0 8px; font-size:17px; }
+.good ul { list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+.aspect { display:grid; grid-template-columns:100px 1fr 28px; align-items:center; gap:10px; width:100%; border:0; background:transparent; padding:4px 6px; border-radius:8px; text-align:left; font-size:14.5px; }
+.aspect:hover { background:var(--panel2); }
+.aspect[aria-pressed="true"] { background:var(--sel); font-weight:650; }
+.aspect .n { text-align:right; font-variant-numeric:tabular-nums; color:var(--muted); }
+.bar { height:10px; border-radius:5px; background:var(--panel2); overflow:hidden; }
+.bar i { display:block; height:100%; background:var(--ok); border-radius:5px; }
+.good .q { font-size:14.5px; margin-top:8px; }
+.good .q div { padding:6px 10px; border-left:3px solid var(--ok); background:var(--panel2); border-radius:6px; margin-top:6px; }
+.good li { font-size:14.5px; }
+.good .why { color:var(--muted); font-size:13.5px; }
 .keys { color:var(--muted); font-size:13px; margin-top:18px; }
 kbd { border:1px solid var(--line); border-bottom-width:2px; border-radius:4px; padding:0 5px; font-size:12px; background:var(--panel2); }
 
@@ -144,7 +172,7 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
 /* Present mode */
 #present { position:fixed; inset:0; z-index:50; background:var(--bg); display:flex; flex-direction:column; }
 #present[hidden] { display:none; }
-.slide { flex:1; overflow:auto; padding:clamp(28px, 5vh, 64px) clamp(28px, 6vw, 120px); display:flex; flex-direction:column; justify-content:center; }
+.slide { flex:1; overflow:auto; padding:clamp(28px, 5vh, 64px) clamp(28px, 6vw, 120px); display:flex; flex-direction:column; justify-content:safe center; }
 .slide .kick { font-size:clamp(16px, 1.4vw, 24px); font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
 .slide h1 { font-size:clamp(36px, 4.4vw, 80px); line-height:1.08; margin:.15em 0 .35em; letter-spacing:-.02em; }
 .slide p, .slide li { font-size:clamp(20px, 1.9vw, 34px); line-height:1.4; }
@@ -164,6 +192,15 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
 .slide th { text-align:left; color:var(--muted); font-size:.8em; text-transform:uppercase; letter-spacing:.06em; padding:.4em .6em; border-bottom:2px solid var(--line); }
 .slide td { padding:.55em .6em; border-bottom:1px solid var(--line); vertical-align:top; }
 .slide td:first-child { font-weight:700; white-space:nowrap; }
+.slide .tag, .slide .pill { font-size:.62em; padding:.1em .55em; }
+.slide .costmeta { gap:.3em; margin-top:.3em; }
+.slide .card.ok { border-top-color:var(--ok); }
+.slide .card ul { margin:.2em 0 0; padding-left:1.1em; }
+.slide .card li { font-size:clamp(18px, 1.6vw, 28px); margin:.15em 0; }
+.slide td li { font-size:inherit; }
+.slide td .lbl { display:none; }
+.slide td .bul { margin:0; }
+.slide .bul { gap:.15em; }
 .pbar { display:flex; align-items:center; gap:12px; padding:10px 20px; border-top:1px solid var(--line); background:var(--panel); font-size:14px; color:var(--muted); }
 
 /* Print = the written report */
@@ -178,6 +215,7 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
   #print dl { display:grid; grid-template-columns:120pt 1fr; gap:2pt 8pt; }
   #print dt { font-weight:700; }
   #print dd { margin:0; }
+  #print .tag { background:none; border:1px solid #999; color:#000; }
 }
 
 @media (max-width: 1250px) {
@@ -186,7 +224,7 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
   .detailcol .sticky { position:static; max-height:none; }
 }
 @media (max-width: 900px) {
-  .today { grid-template-columns:1fr; }
+  .today, .good { grid-template-columns:1fr; }
   .work { grid-template-columns:1fr; }
   .sticky { position:static; max-height:none; }
   .slide .cols { grid-template-columns:1fr; }
@@ -215,6 +253,8 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
   <section class="kpis" id="kpis" aria-label="Summary"></section>
   <h2 class="sec">Needs attention today</h2>
   <section class="today" id="today"></section>
+  <h2 class="sec">What's working</h2>
+  <section class="good" id="good"></section>
   <h2 class="sec">Work the queue</h2>
   <section class="work">
     <aside class="panel nav sticky" aria-label="Groups and filters">
@@ -256,7 +296,10 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
 <dialog id="dPrompt">
   <h2 style="margin-top:0">What the model sees</h2>
   <p class="meta">Rider ids are never sent. In mock mode no call is made; this is the exact prompt live mode sends.</p>
+  <h3>Step 1: label each message</h3>
   <pre id="pSys"></pre><pre id="pUser"></pre>
+  <h3>Step 2: what waiting costs</h3>
+  <pre id="pCostSys"></pre><pre id="pCostUser"></pre>
   <form method="dialog"><button class="btn">Close</button></form>
 </dialog>
 <dialog id="dBatch">
@@ -273,9 +316,11 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
 
 <script>
 const $ = s => document.querySelector(s);
-const S = { data: null, csv: null, group: "esc", msg: null, list: [], slide: 0,
+const S = { data: null, csv: null, group: "esc", msg: null, list: [], slide: 0, aspect: null,
             f: { q: "", sev: new Set(), route: "", token: false, human: false, check: false, repeat: false } };
 const SEV = { 1: "Safety", 2: "Money owed", 3: "Service failure", 4: "Minor", 5: "No issue" };
+const SEV_MEANS = { 1: "risk of physical harm to riders or the public", 2: "rider out of pocket (charged without service, charged twice, refund owed)",
+  3: "service failure (late bus, broken AC, unannounced change, app bug blocking booking, dirty bus)", 4: "minor issue, request or question", 5: "no issue" };
 
 // Rider text is untrusted: every node is built with textContent, never innerHTML.
 function el(tag, attrs = {}, ...kids) {
@@ -294,7 +339,35 @@ const pill = s => el("span", { class: "pill p" + (s || 0) }, s ? `S${s} · ${SEV
 const firstSentence = s => (String(s || "").match(/^.*?[.!?](?=\s|$)/) || [s])[0];
 const M = id => S.data.messages[id];
 const riders = ms => new Set(ms.map(m => m.rider === "anonymous" ? m.id : m.rider)).size;
+// One short phrase per code: drop the legal reference, examples and the trailing period.
+const codeMeans = c => c && S.data.codes[c] ? S.data.codes[c].desc.split(" Ref:")[0].split(/, (?:such as|including) /)[0].trim().replace(/\.$/, "") : null;
+const codeTag = c => el("span", { class: "tag", title: codeMeans(c) }, c || "unlabelled");
 const needsCheck = m => !m.label.code || (m.model_label.code && !m.evidence_found);
+
+// Long prose reads as bullets: one sentence (or "; " clause) per bullet. Never splits after e.g./i.e. etc.
+function sentences(t) {
+  return String(t || "").split(/;\s+/).flatMap(part => part.split(/(?<=[.!?])\s+/).reduce((a, x) => {
+    if (a.length && /\b(e\.g|i\.e|etc|vs|approx|no|nos|rs|mr|ms|dr|st)\.$/i.test(a[a.length - 1])) a[a.length - 1] += " " + x; else a.push(x);
+    return a; }, [])).map(x => x.trim()).filter(Boolean);
+}
+function bullets(t, max) {
+  const xs = sentences(t);
+  return xs.length < 2 ? (t || "") : el("ul", { class: "bul" }, xs.slice(0, max || xs.length).map(x => el("li", {}, x[0].toUpperCase() + x.slice(1))));
+}
+const aspectName = a => a === "ac" ? "AC" : a[0].toUpperCase() + a.slice(1);
+const when = t => new Date(t).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+const idLinks = (ids, go) => ids.map((id, i) => [i ? ", " : "", go ? el("button", { type: "button", onclick: () => go(id) }, id) : id]);
+const goList = id => { jump(id); $("#list").scrollIntoView({ behavior: "smooth", block: "start" }); };
+// What waiting costs: who pays + where the statement came from (model, mock, a human edit, or the written policy).
+function costMeta(g, go) {
+  const ids = g.cost_evidence || [], src = g.cost_source;
+  const label = src === "model" ? ["Model estimate", ids.length ? [" · from ", idLinks(ids, go)] : ""]
+    : src === "mock" ? "Mock" : src === "human" ? "Edited by a human · " + (g.cost_note || "")
+    : src === "not_assessed" ? "Not assessed: no issue to cost" : "Written policy (model unavailable)";
+  return el("div", { class: "costmeta" }, el("span", { class: "lbl" }, "Who pays"),
+    (g.who_pays || []).length ? g.who_pays.map(w => el("span", { class: "tag" }, w)) : el("span", { class: "tag" }, "nobody pays"),
+    el("span", { class: "tag src links" + (src === "human" ? " human" : ""), title: src === "human" && g.model_cost ? "Model/mock said: " + g.model_cost.cost : null }, label));
+}
 
 function highlighted(text, quote) {
   const i = quote ? text.indexOf(quote) : -1;
@@ -367,7 +440,7 @@ function render() {
   acts.forEach(g => cards.push(todayCard(g, g.key, "Act today · no slot needed")));
   put($("#today"), ...cards);
 
-  renderNav(); renderGroupInfo(); renderList(); renderDetail(); renderPrint();
+  renderGood(); renderNav(); renderGroupInfo(); renderList(); renderDetail(); renderPrint();
   if (!$("#present").hidden) renderSlide();
 }
 const kpi = (n, label) => el("div", { class: "kpi" }, el("b", {}, n), el("span", {}, label));
@@ -376,7 +449,37 @@ function todayCard(g, key, kicker) {
     el("div", { class: "kicker" }, kicker),
     el("h3", {}, g.title),
     el("div", { class: "who" }, `${g.ids.length} messages · ${g.riders} riders · owner: ${g.owner || "unassigned"}`),
-    el("p", {}, firstSentence(g.fix)));
+    bullets(g.fix, 2));
+}
+
+function renderGood() {
+  const w = S.data.working, asp = Object.entries(w.aspects).sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
+  const max = Math.max(1, ...asp.map(a => a[1].length));
+  if (!w.aspects[S.aspect]) S.aspect = null;
+  const praise = el("div", { class: "panel" }, el("h3", {}, "What riders praise"),
+    asp.length ? el("ul", {}, asp.map(([a, ids]) => el("li", {}, el("button", {
+      class: "aspect", "aria-pressed": String(S.aspect === a), onclick: () => { S.aspect = S.aspect === a ? null : a; renderGood(); }
+    }, aspectName(a), el("span", { class: "bar" }, el("i", { style: `width:${Math.round(100 * ids.length / max)}%` })), el("span", { class: "n" }, ids.length))))) : el("div", { class: "meta" }, "No praise in this batch."),
+    S.aspect ? el("div", { class: "q links" }, w.aspects[S.aspect].map(id => el("div", {},
+      M(id).praise_quote ? "“" + M(id).praise_quote + "” " : el("span", { class: "meta" }, "(no exact quote) "),
+      "— ", el("button", { type: "button", onclick: () => goList(id) }, id)))) : el("div", { class: "meta", style: "margin-top:8px" }, "Click an aspect to see what riders said."));
+  const routes = Object.entries(w.routes).sort((a, b) => b[1].length - a[1].length);
+  const drivers = el("div", { class: "panel links" }, el("h3", {}, "Complimented drivers and routes"),
+    w.drivers.length ? el("ul", {}, w.drivers.map(dv => el("li", {},
+      el("span", { class: "pill " + { eligible: "pok", check: "p2", blocked: "p1" }[dv.status] }, dv.status), " ",
+      el("button", { type: "button", onclick: () => goList(dv.id) }, dv.id), ` · ${dv.route || "no route"} · ${when(dv.created_at)}`,
+      dv.quote ? el("div", {}, "“" + dv.quote + "”") : null, el("div", { class: "why" }, dv.why)))) : el("div", { class: "meta" }, "No driver compliments in this batch."),
+    routes.length ? [el("h3", { style: "margin-top:14px" }, "Routes with praise"),
+      el("ul", { style: "gap:2px" }, routes.map(([r, ids]) => el("li", {}, el("b", {}, r), ` · ${ids.length} `, "(", idLinks(ids, goList), ")")))] : null,
+    el("p", { class: "meta", style: "margin:12px 0 0; font-size:13.5px" }, "Driver and bus ids aren't in the export, so compliments are tied to a route and trip; the trip record names the driver."));
+  const watch = el("div", { class: "panel links" }, el("h3", {}, "Watch list"),
+    w.turned.length ? el("ul", {}, w.turned.map(t => el("li", {}, "Praised in ", el("button", { type: "button", onclick: () => goList(t.praised) }, t.praised),
+      ", complained in ", el("button", { type: "button", onclick: () => goList(t.complained) }, t.complained))))
+      : el("div", { class: "meta" }, "Nobody in this sheet praised us earlier and complained later. To catch this across days, we need to recognise the same rider in each new export without storing who they are (on the to-do list)."),
+    el("h3", { style: "margin-top:14px" }, "Happy riders with a complaint"),
+    w.mixed.length ? el("ul", { style: "gap:2px" }, w.mixed.map(id => el("li", {}, el("button", { type: "button", onclick: () => goList(id) }, id), " ",
+      pill(M(id).label.severity), " ", codeTag(M(id).label.code)))) : el("div", { class: "meta" }, "None in this batch."));
+  put($("#good"), praise, drivers, watch);
 }
 function dateRange(ms) {
   const ds = ms.map(m => new Date(m.created_at)).filter(d => !isNaN(d)).sort((a, b) => a - b);
@@ -412,12 +515,25 @@ function renderGroupInfo() {
     el("h2", {}, g.title, " ", pill(g.severity)),
     el("div", { class: "meta" }, `${g.ids.length} messages · ${g.riders} riders`),
     el("dl", {},
-      isEsc ? [el("dt", {}, "Why this one"), el("dd", {}, S.data.rule)] : null,
+      isEsc ? [el("dt", {}, "Why this one"), el("dd", {}, bullets(S.data.rule))] : null,
       el("dt", {}, "Owner"), el("dd", {}, (g.owner || "Unassigned") + " (confirm with Meera)"),
-      el("dt", {}, "Fix"), el("dd", {}, g.fix),
+      el("dt", {}, "Fix"), el("dd", {}, bullets(g.fix)),
       g.asks ? [el("dt", {}, "Ask leadership"), el("dd", {}, el("ol", {}, g.asks.map(a => el("li", {}, a))))] : null,
-      el("dt", {}, isEsc ? "Cost of waiting" : "Cost of deferring"), el("dd", {}, g.cost),
-      el("dt", {}, "Risk if unchecked"), el("dd", {}, g.risk)));
+      el("dt", {}, isEsc ? "Cost of waiting" : "Cost of deferring"), el("dd", {}, bullets(g.cost), costMeta(g, jump), costForm(g)),
+      el("dt", {}, "Risk if unchecked"), el("dd", {}, bullets(g.risk))));
+}
+function costForm(g) {
+  const key = g.key === "esc" ? S.data.escalation.key : g.key, opts = S.data.who_pays_options || [];
+  const cost = el("textarea", { rows: 4, "aria-label": "Cost of waiting" }, g.cost || "");
+  const boxes = opts.map(w => el("input", { type: "checkbox", value: w, checked: (g.who_pays || []).includes(w) }));
+  const note = el("input", { type: "text", required: true, placeholder: "Why are you changing it? (required, kept in the audit log)" });
+  return el("details", {}, el("summary", {}, "Change cost / who pays"), el("form", { class: "cov", onsubmit: async e => {
+    e.preventDefault();
+    const ok = await api("/api/cost_override", { batch: S.data.batch, group: key, cost: cost.value,
+      who_pays: boxes.filter(b => b.checked).map(b => b.value), note: note.value });
+    if (ok) load(S.csv);
+  } }, cost, el("div", { class: "checks", "aria-label": "Who pays" }, boxes.map((b, i) => el("label", {}, b, " ", opts[i]))),
+    note, el("button", { class: "btn" }, "Save cost")));
 }
 
 function renderList() {
@@ -429,7 +545,7 @@ function renderList() {
     class: "item", role: "option", "aria-current": String(m.id === S.msg), "data-id": m.id,
     onclick: () => { S.msg = m.id; renderList(); renderDetail(); }
   },
-    el("div", { class: "row" }, el("b", {}, m.id), pill(m.label.severity), el("span", { class: "tag" }, m.label.code || "unlabelled"),
+    el("div", { class: "row" }, el("b", {}, m.id), pill(m.label.severity), codeTag(m.label.code),
       m.route || "no route", m.stars ? `· ${m.stars}★` : "",
       m.token_flag ? el("span", { class: "tag flag" }, "token") : null,
       m.label.source === "human" ? el("span", { class: "tag human" }, "overridden") : null,
@@ -441,30 +557,33 @@ function renderDetail() {
   const box = $("#detail"), m = S.msg && M(S.msg);
   if (!m) { put(box, el("div", { class: "empty" }, "Select a message.")); return; }
   const L = m.label, ML = m.model_label, codes = Object.keys(S.data.codes);
-  const code = el("select", { "aria-label": "Code" }, codes.map(c => el("option", { value: c, selected: c === L.code }, c)));
-  const sev = el("select", { "aria-label": "Severity" }, [1, 2, 3, 4, 5].map(s => el("option", { value: s, selected: s === L.severity }, `S${s} · ${SEV[s]}`)));
+  const hint = el("div", { class: "hint" });
+  const showHint = () => hint.textContent = `${code.value}: ${codeMeans(code.value)} · S${sev.value}: ${SEV_MEANS[sev.value]}`;
+  const code = el("select", { "aria-label": "Code", onchange: () => showHint() }, codes.map(c => el("option", { value: c, selected: c === L.code }, `${c} — ${codeMeans(c)}`)));
+  const sev = el("select", { "aria-label": "Severity", onchange: () => showHint() }, [1, 2, 3, 4, 5].map(s => el("option", { value: s, selected: s === L.severity }, `S${s} · ${SEV[s]}`)));
+  showHint();
   const note = el("input", { placeholder: "Why are you changing it? (required, kept in the audit log)" });
   const form = el("form", { class: "ov", onsubmit: async e => {
     e.preventDefault();
     const ok = await api("/api/override", { batch: S.data.batch, id: m.id, code: code.value, severity: +sev.value, note: note.value });
     if (ok) load(S.csv);
-  } }, code, sev, note, el("button", { class: "btn" }, "Save override"));
+  } }, code, sev, hint, note, el("button", { class: "btn" }, "Save override"));
 
   put(box, 
     el("h2", {}, m.id, " ", pill(L.severity)),
     el("div", { class: "sub" }, [m.route || "no route", m.channel.replace(/_/g, " "), m.stars ? m.stars + "★" : null,
       new Date(m.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }), m.rider].filter(Boolean).join(" · ")),
     el("div", {},
-      el("span", { class: "tag" }, L.code || "unlabelled"), " ",
+      codeTag(L.code), " ",
       m.token_flag ? el("span", { class: "tag flag", title: S.data.token_rule }, "Contains override token · not trusted · kept in triage") : null),
     el("div", { class: "quote" }, highlighted(m.text, m.evidence_found ? ML.evidence : null)),
     m.same_rider_as.length ? el("div", { class: "links" }, "Same rider also sent: ",
       m.same_rider_as.map((id, i) => [i ? ", " : "", el("button", { onclick: () => jump(id) }, id)])) : null,
     el("div", { class: "trace" },
       el("div", {}, el("small", {}, ML.source === "model" ? "Model said" : ML.source === "mock" ? "Mock label (no model call)" : "No label yet"),
-        ML.code ? `${ML.code} · S${ML.severity}. ${ML.reason}` : "Label this message by hand below.",
+        ML.code ? [`${ML.code} · S${ML.severity}.`, bullets(" " + ML.reason)] : "Label this message by hand below.",
         ML.code && !m.evidence_found ? el("div", { class: "err" }, "The quoted evidence isn't in the message. Check this label.") : null),
-      L.source === "human" ? el("div", { class: "h" }, el("small", {}, "Human override · " + L.at), `${L.code} · S${L.severity}. ${L.reason}`) : null),
+      L.source === "human" ? el("div", { class: "h" }, el("small", {}, "Human override · " + L.at), `${L.code} · S${L.severity}.`, bullets(" " + L.reason)) : null),
     el("details", { open: needsCheck(m) || undefined }, el("summary", {}, "Change this label"), form));
 }
 
@@ -484,16 +603,25 @@ function move(step) {
 function renderPrint() {
   const d = S.data, acts = todayActs();
   const sec = (g, head) => [el("h2", {}, head + g.title),
-    el("dl", {}, el("dt", {}, "Owner"), el("dd", {}, g.owner || "Unassigned"), el("dt", {}, "Fix"), el("dd", {}, g.fix),
+    el("dl", {}, el("dt", {}, "Owner"), el("dd", {}, g.owner || "Unassigned"), el("dt", {}, "Fix"), el("dd", {}, bullets(g.fix)),
       g.asks ? [el("dt", {}, "Ask leadership"), el("dd", {}, g.asks.join("; "))] : null,
-      el("dt", {}, "Cost"), el("dd", {}, g.cost), el("dt", {}, "Risk"), el("dd", {}, g.risk)),
+      el("dt", {}, "Cost"), el("dd", {}, bullets(g.cost), costMeta(g)), el("dt", {}, "Risk"), el("dd", {}, bullets(g.risk))),
     g.ids.map(id => { const m = M(id); return el("div", { class: "pm" }, el("b", {}, `${m.id} · S${m.label.severity || "?"} · ${m.label.code || "unlabelled"} · ${m.route || "no route"}`), el("div", {}, `"${m.text}"`)); })];
   put($("#print"), 
     el("h1", {}, "Rider feedback triage"), el("div", {}, `Batch ${d.batch} · ${dateRange(Object.values(d.messages))} · ${d.mode} mode`),
-    el("p", {}, el("b", {}, "Rule: "), d.rule),
+    el("div", {}, el("b", {}, "Rule: "), bullets(d.rule)),
     d.escalation ? sec(d.escalation, "Escalate at 11: ") : el("p", {}, "Nothing to escalate."),
     acts.map(g => sec(g, "Act today: ")),
+    printGood(),
     d.groups.filter(g => !acts.includes(g)).map(g => sec(g, "Deferred: ")));
+}
+function printGood() {
+  const w = S.data.working, asp = Object.entries(w.aspects).sort((a, b) => b[1].length - a[1].length);
+  return [el("h2", {}, "What's working"),
+    el("dl", {}, el("dt", {}, "Riders praise"), el("dd", {}, asp.map(([a, ids]) => `${aspectName(a)} ${ids.length}`).join(" · ") || "Nothing this batch"),
+      el("dt", {}, "Drivers"), el("dd", {}, w.drivers.map(dv => `${dv.id} ${dv.route} (${dv.status})`).join(" · ") || "None"),
+      el("dt", {}, "Watch list"), el("dd", {}, w.turned.map(t => `praised in ${t.praised}, complained in ${t.complained}`).join(" · ") || "No rider praised us and then complained in this batch."),
+      el("dt", {}, "Happy, with a complaint"), el("dd", {}, w.mixed.map(id => `${id} ${M(id).label.code || "unlabelled"}`).join(" · ") || "None"))];
 }
 
 /* ---------- present ---------- */
@@ -515,16 +643,29 @@ function slides() {
       return el("blockquote", {}, "“" + (m.evidence_found ? m.model_label.evidence : m.text) + "”",
         el("cite", {}, `${m.id} · ${m.route || "no route"}${m.stars ? " · " + m.stars + "★" : ""}${m.same_rider_as.length ? " · same rider as " + m.same_rider_as.join(", ") : ""}`)); })),
     e.asks ? [el("p", { style: "margin:.3em 0 .1em; font-weight:700" }, "What we ask leadership for, in order"),
-      el("ol", {}, e.asks.map(a => el("li", {}, a)))] : el("p", {}, e.fix)]);
+      el("ol", {}, e.asks.map(a => el("li", {}, a)))] : bullets(e.fix)]);
   if (acts.length) out.push(() => [el("div", { class: "kick" }, "Fix today · no escalation needed"),
     el("h1", {}, "Act on these this morning"),
     el("div", { class: "cols" }, acts.map(g => el("div", { class: "card" },
       el("h2", {}, g.title), el("p", { style: "color:var(--muted)" }, `${g.ids.length} messages · ${g.riders} riders · ${g.owner}`),
-      el("p", {}, firstSentence(g.fix)), el("p", {}, el("b", {}, "If we wait: "), g.cost))))]);
+      bullets(g.fix, 2), el("p", {}, el("b", {}, "If we wait:")), bullets(g.cost, 2), costMeta(g))))]);
+  const w = d.working, asp = Object.entries(w.aspects).sort((a, b) => b[1].length - a[1].length);
+  if (asp.length || w.drivers.length) out.push(() => [el("div", { class: "kick", style: "color:var(--ok)" }, "What's working"),
+    el("h1", {}, "What riders praise, and who earned it"),
+    el("div", { class: "cols" },
+      el("div", { class: "card ok" }, el("h2", {}, "Riders praise"),
+        el("ul", {}, asp.slice(0, 5).map(([a, ids]) => el("li", {}, el("b", {}, aspectName(a)), ` · ${ids.length} message${ids.length > 1 ? "s" : ""}`)))),
+      el("div", { class: "card ok" }, el("h2", {}, "Complimented drivers"),
+        w.drivers.length ? el("ul", {}, w.drivers.map(dv => el("li", {}, el("span", { class: "pill " + { eligible: "pok", check: "p2", blocked: "p1" }[dv.status] }, dv.status),
+          ` ${dv.id} · ${dv.route}`))) : el("p", {}, "None in this batch."),
+        el("p", { style: "color:var(--muted)" }, "Blocked or check: the same trip or route has a safety report."))),
+    el("p", {}, el("b", {}, "Watch list: "), w.turned.length ? w.turned.map(t => `${t.praised} praised, then ${t.complained} complained`).join("; ")
+      : "no rider praised us and then complained in this batch.", w.mixed.length ? ` ${w.mixed.length} happy riders also raised a complaint.` : "")]);
   if (deferred.length) out.push(() => [el("div", { class: "kick" }, "Deferred to tomorrow"),
     el("h1", {}, "What waiting costs, and who pays"),
-    el("table", {}, el("thead", {}, el("tr", {}, el("th", {}, "Problem"), el("th", {}, "Riders"), el("th", {}, "Cost of waiting a day"))),
-      el("tbody", {}, deferred.map(g => el("tr", {}, el("td", {}, g.title), el("td", {}, g.riders), el("td", {}, g.cost))))) ]);
+    el("table", {}, el("thead", {}, el("tr", {}, el("th", {}, "Problem"), el("th", {}, "Riders"), el("th", {}, "Cost of waiting a day"), el("th", {}, "Who pays"))),
+      el("tbody", {}, deferred.map(g => el("tr", {}, el("td", {}, g.title), el("td", {}, g.riders),
+        el("td", {}, bullets(g.cost)), el("td", {}, costMeta(g)))))) ]);
   return out;
 }
 function renderSlide() {
@@ -551,7 +692,8 @@ $("#pNext").onclick = () => { S.slide++; renderSlide(); };
 $("#pExit").onclick = () => setView("report");
 $("#pFull").onclick = fullscreen;
 $("#bPrint").onclick = () => window.print();
-$("#bPrompt").onclick = () => { $("#pSys").textContent = S.data.prompt.system; $("#pUser").textContent = S.data.prompt.user; $("#dPrompt").showModal(); };
+$("#bPrompt").onclick = () => { $("#pSys").textContent = S.data.prompt.system; $("#pUser").textContent = S.data.prompt.user;
+  $("#pCostSys").textContent = S.data.prompt.cost_system || ""; $("#pCostUser").textContent = S.data.prompt.cost_user || ""; $("#dPrompt").showModal(); };
 $("#bBatch").onclick = () => $("#dBatch").showModal();
 $("#file").onchange = async e => { const f = e.target.files[0]; if (f) $("#csv").value = await f.text(); };
 $("#run").onclick = () => { if ($("#csv").value.trim()) { $("#dBatch").close(); S.group = "esc"; load($("#csv").value); } };

@@ -69,7 +69,7 @@
   "safety": {
    "title": "Driver safety",
    "fix": "Today, for each incident: confirm the bus and driver from the trip record, then take a confirmed driver off duty pending review, and reply to the rider. FB-005's route code is a Hyderabad route but it names Powai in Mumbai, so confirm the bus first.",
-   "cost": "Not deferred. Every safety incident gets same-day verify-then-act.",
+   "cost": "Not deferred: every incident gets same-day verify-then-act. If it slipped a day, riders and the public stay exposed to a driver who may be unsafe, and Cityflo carries the liability.",
    "risk": "A crash that injures riders or the public, possibly children at a school crossing. Legal liability, regulatory action against our permits, and the kind of public incident that can end a commute business.",
    "owner": "Fleet operations (driver management)",
    "asks": [
@@ -77,6 +77,11 @@
     "A dedicated driver phone with no distracting apps",
     "Prevention-first driver safety training",
     "Random, unannounced safety inspectors on buses"
+   ],
+   "who_pays": [
+    "riders",
+    "public",
+    "cityflo"
    ]
   },
   "money": {
@@ -84,84 +89,118 @@
    "fix": "Today: check each rider against the payment provider's records. Riders with no active pass and a debit, a pending payment or at least one attempt keep riding until we verify; anyone let through without a confirmed debit is flagged for review. Verified paid: activate the pass. Not paid: ask them to pay, or stop the free rides. Return the double charge. Trace the stuck refund before it passes the refund window. Reply to every affected rider. Engineering on-call investigates why successful payments are not activating passes.",
    "cost": "No rider pays twice to get to work. Riders owed money wait one more day for it. Cityflo pays the rest: free rides for riders not yet verified, and a support queue that grows as every new renewal hits the same fault.",
    "risk": "Every renewal can hit the same fault: mass cancellations, payment disputes, a growing refund liability, and public reviews about being charged for nothing. Pass renewals are core recurring revenue.",
-   "owner": "Payments engineering, with support for replies"
+   "owner": "Payments engineering, with support for replies",
+   "who_pays": [
+    "riders",
+    "cityflo",
+    "support team"
+   ]
   },
   "late": {
    "title": "Late buses",
    "fix": "Analyse on-time data and re-optimise schedules. Fix the worse direction first (this batch points to the morning commute), and re-optimise for the days each route runs late. On the Hyderabad route, schedule pressure may be behind the rash driving.",
    "cost": "Riders on these routes are likely late to work again tomorrow and some miss connections. Riders pay in time; Cityflo pays in repeat tickets and trust.",
    "risk": "Riders who need to reach work on time switch to cabs, and the premium promise stops meaning anything. Schedule pressure keeps feeding rash driving.",
-   "owner": "Operations planning (scheduling)"
+   "owner": "Operations planning (scheduling)",
+   "who_pays": [
+    "riders",
+    "cityflo"
+   ]
   },
   "ac": {
    "title": "AC problems",
    "fix": "Maintenance check on buses where AC is not cooling. Keep the cabin at a comfortable temperature relative to outside: cooler when it's hot, warmer when it's cold.",
    "cost": "Another hot ride tomorrow on the affected buses. Riders pay in comfort; Cityflo pays in trust and repeat tickets.",
    "risk": "AC is part of what riders pay a premium for. Left broken through hot months, riders stop seeing the value.",
-   "owner": "Fleet maintenance"
+   "owner": "Fleet maintenance",
+   "who_pays": [
+    "riders",
+    "cityflo"
+   ]
   },
   "route": {
    "title": "Route and stop changes",
    "fix": "Every stop or route change notifies affected riders before it happens. A stranded rider is an operational gap. An unannounced route change on a safety route goes to the safety review.",
    "cost": "If another stop moves without notice, more riders are stranded and may pay for another way to work.",
    "risk": "Riders stop trusting stops and the map. Unannounced route changes can hide unsafe or unauthorised detours.",
-   "owner": "Route operations, with product for notifications"
+   "owner": "Route operations, with product for notifications",
+   "who_pays": [
+    "riders",
+    "cityflo"
+   ]
   },
   "comfort": {
    "title": "Onboard comfort",
    "fix": "Check occupancy on crowded routes for another bus. Dirty seats are not acceptable: clean now and put a better cleaning schedule in place. Wifi is cut until more riders report it.",
    "cost": "Crowding continues until occupancy is checked; riders pay in comfort.",
    "risk": "Chronic crowding pushes riders away. Dirty buses erode the premium promise.",
-   "owner": "Fleet maintenance (cleaning); operations planning (crowding)"
+   "owner": "Fleet maintenance (cleaning); operations planning (crowding)",
+   "who_pays": [
+    "riders"
+   ]
   },
   "app": {
    "title": "Booking app bugs",
    "fix": "Fix the booking flow first: crashes and mid-booking logouts. Then simplify or remove confusing screens. Fewer features that work beat more that don't. Check whether a crash mid-booking can leave a payment with no pass.",
    "cost": "Some riders fail to book or have to start over. Riders pay in time; Cityflo pays in lost bookings.",
    "risk": "Riders who can't book stop trying, and store ratings drop. If linked to payments, each failed booking can add a paid-but-no-pass case.",
-   "owner": "App engineering"
+   "owner": "App engineering",
+   "who_pays": [
+    "riders",
+    "cityflo"
+   ]
   },
   "tracking": {
    "title": "Live tracking lag",
    "fix": "No fleet-wide fix on one report. Check tracking accuracy on the routes with safety incidents first. If lag clusters at night or on risky stretches, it becomes a safety issue.",
    "cost": "Low. Tracking may lag a few minutes for another day.",
    "risk": "If the lag is real on safety routes, telematics would detect harsh driving late exactly where it matters.",
-   "owner": "App or telematics engineering"
+   "owner": "App or telematics engineering",
+   "who_pays": [
+    "riders"
+   ]
   },
   "requests": {
    "title": "Feature requests",
    "fix": "Log, don't build, until existing features work. Every direct question gets a reply. Extra stops only if they bring riders for a small time cost, after route analysis.",
    "cost": "Nothing material.",
    "risk": "Low. A rider who can't pause a pass may cancel instead.",
-   "owner": "Product, with support for replies"
+   "owner": "Product, with support for replies",
+   "who_pays": []
   },
   "sentiment": {
    "title": "Price and value complaints",
    "fix": "Check whether the price is fair against occupancy data and per-ride unit economics. No action on a single review.",
    "cost": "One rider's frustration; possibly one lost renewal.",
    "risk": "If it reflects a wider view, price-sensitive riders cancel at renewal.",
-   "owner": "Finance (pricing)"
+   "owner": "Finance (pricing)",
+   "who_pays": [
+    "cityflo"
+   ]
   },
   "other": {
    "title": "Needs a human look",
    "fix": "Fits no code. Read it and label it by hand.",
    "cost": "Unknown until someone reads it.",
    "risk": "Unknown.",
-   "owner": "Ops lead to assign"
+   "owner": "Ops lead to assign",
+   "who_pays": []
   },
   "none": {
    "title": "No issue",
    "fix": "No action.",
    "cost": "None.",
    "risk": "None.",
-   "owner": "None"
+   "owner": "None",
+   "who_pays": []
   },
   "unlabelled": {
    "title": "Not labelled",
    "fix": "No label for these messages (mock mode only has labels for the 30-message batch). Run with --live, or label them by hand below.",
    "cost": "Unknown until labelled.",
    "risk": "Unknown. A safety message could be sitting here.",
-   "owner": "Ops lead to assign"
+   "owner": "Ops lead to assign",
+   "who_pays": []
   }
  },
  "labels": {
@@ -169,181 +208,267 @@
    "code": "NONE",
    "severity": 5,
    "reason": "Praise for a polite driver who waited.",
-   "evidence": "driver was polite and waited the extra minute for me"
+   "evidence": "driver was polite and waited the extra minute for me",
+   "praise": [
+    "driver"
+   ],
+   "praise_quote": "driver was polite and waited the extra minute for me"
   },
   "FB-002": {
    "code": "PAY-DOUBLE-CHARGE",
    "severity": 2,
    "reason": "Charged twice for one booking; second amount not returned.",
-   "evidence": "the second amount has not come back yet"
+   "evidence": "the second amount has not come back yet",
+   "praise": [],
+   "praise_quote": ""
   },
   "FB-003": {
    "code": "PAY-NO-PASS",
    "severity": 2,
    "reason": "Payment succeeded and was debited but the pass is not active.",
-   "evidence": "UPI shows success and the money is debited but the app says my pass is not active"
+   "evidence": "UPI shows success and the money is debited but the app says my pass is not active",
+   "praise": [],
+   "praise_quote": ""
   },
   "FB-004": {
    "code": "SAF-DRV-DISTRACT",
    "severity": 1,
    "reason": "Driver watched a movie on a phone on the dash while driving the highway. Reported inside a sincere 5-star review, not as a complaint.",
-   "evidence": "the driver had a movie playing on his phone propped on the dash for most of the highway stretch today"
+   "evidence": "the driver had a movie playing on his phone propped on the dash for most of the highway stretch today",
+   "praise": [
+    "service",
+    "driver"
+   ],
+   "praise_quote": "genuinely the best part of my morning"
   },
   "FB-005": {
    "code": "SAF-DRV-RASH",
    "severity": 1,
    "reason": "Driver crossed the lane divider to overtake at a school crossing with children present. Second report from this rider; also reports lateness.",
-   "evidence": "cut across the lane divider to overtake at the school crossing near Powai"
+   "evidence": "cut across the lane divider to overtake at the school crossing near Powai",
+   "praise": [],
+   "praise_quote": ""
   },
   "FB-006": {
    "code": "OPS-ROUTE-CHANGE",
    "severity": 3,
    "reason": "Pickup point moved with no notification; rider waited at the old spot.",
-   "evidence": "pickup point moved this morning and there was no notification, waited at the old spot"
+   "evidence": "pickup point moved this morning and there was no notification, waited at the old spot",
+   "praise": [],
+   "praise_quote": ""
   },
   "FB-007": {
    "code": "OPS-LATE",
    "severity": 3,
    "reason": "Bus 8 minutes late; rider missed their connection.",
-   "evidence": "bus was 8 min late at the pickup point, missed my connection"
+   "evidence": "bus was 8 min late at the pickup point, missed my connection",
+   "praise": [],
+   "praise_quote": ""
   },
   "FB-008": {
    "code": "PAY-REFUND",
    "severity": 2,
    "reason": "Refund for a missed ride last week still not received.",
-   "evidence": "requested a refund for a missed ride last week, still not received"
+   "evidence": "requested a refund for a missed ride last week, still not received",
+   "praise": [],
+   "praise_quote": ""
   },
   "FB-009": {
    "code": "OPS-COMFORT",
    "severity": 4,
    "reason": "Bus crowded; rider couldn't get their usual seat.",
-   "evidence": "bus was quite crowded today, couldn't get my usual seat"
+   "evidence": "bus was quite crowded today, couldn't get my usual seat",
+   "praise": [],
+   "praise_quote": ""
   },
   "FB-010": {
    "code": "SAF-DRV-RASH",
    "severity": 1,
    "reason": "Rash driving over several mornings, plus lateness. Same rider as the school-crossing report.",
-   "evidence": "the driver has been driving pretty rash the last few mornings"
+   "evidence": "the driver has been driving pretty rash the last few mornings",
+   "praise": [],
+   "praise_quote": ""
   },
   "FB-011": {
    "code": "OPS-AC",
    "severity": 3,
    "reason": "AC barely cooling; stuffy the whole ride.",
-   "evidence": "AC was barely cooling today, felt stuffy the whole way"
+   "evidence": "AC was barely cooling today, felt stuffy the whole way",
+   "praise": [],
+   "praise_quote": ""
   },
   "FB-012": {
    "code": "NONE",
    "severity": 5,
    "reason": "Neutral note, no complaint.",
-   "evidence": "seats fine, driver fine, no complaints really"
+   "evidence": "seats fine, driver fine, no complaints really",
+   "praise": [
+    "seats",
+    "driver"
+   ],
+   "praise_quote": "seats fine, driver fine"
   },
   "FB-013": {
    "code": "PAY-NO-PASS",
    "severity": 2,
    "reason": "Pass renewal debited but the pass still shows expired.",
-   "evidence": "money got debited for my monthly pass renewal but the pass still shows expired"
+   "evidence": "money got debited for my monthly pass renewal but the pass still shows expired",
+   "praise": [],
+   "praise_quote": ""
   },
   "FB-014": {
    "code": "OPS-LATE",
    "severity": 3,
    "reason": "Sarcastic 5-star review: bus 25 minutes late again and AC off the whole ride.",
-   "evidence": "25 minutes late AGAIN and the AC was off the entire ride"
+   "evidence": "25 minutes late AGAIN and the AC was off the entire ride",
+   "praise": [],
+   "praise_quote": ""
   },
   "FB-015": {
    "code": "APP-BUG",
    "severity": 3,
    "reason": "App crashed during booking.",
-   "evidence": "only the app crashed once when booking"
+   "evidence": "only the app crashed once when booking",
+   "praise": [
+    "ride",
+    "ac"
+   ],
+   "praise_quote": "good ride overall, AC perfect"
   },
   "FB-016": {
    "code": "OPS-ROUTE-CHANGE",
    "severity": 3,
    "reason": "Bus took a different route from the one on the map, on a route with a safety incident.",
-   "evidence": "driver took a different route than the map showed"
+   "evidence": "driver took a different route than the map showed",
+   "praise": [],
+   "praise_quote": ""
   },
   "FB-017": {
    "code": "OPS-LATE",
    "severity": 3,
    "reason": "Bus late every day and AC never works (Hindi).",
-   "evidence": "bus roz late aati hai, AC kabhi chalta nahi"
+   "evidence": "bus roz late aati hai, AC kabhi chalta nahi",
+   "praise": [],
+   "praise_quote": ""
   },
   "FB-018": {
    "code": "APP-BUG",
    "severity": 3,
    "reason": "App logged the rider out mid-booking.",
-   "evidence": "app logged me out mid-booking and i had to start the whole thing over"
+   "evidence": "app logged me out mid-booking and i had to start the whole thing over",
+   "praise": [],
+   "praise_quote": ""
   },
   "FB-019": {
    "code": "OPS-COMFORT",
    "severity": 4,
    "reason": "Wifi drops near the flyover.",
-   "evidence": "wifi keeps dropping near the flyover"
+   "evidence": "wifi keeps dropping near the flyover",
+   "praise": [
+    "seats"
+   ],
+   "praise_quote": "seats are comfortable"
   },
   "FB-020": {
    "code": "OPS-COMFORT",
    "severity": 3,
    "reason": "Dirty seat; not acceptable on a premium service.",
-   "evidence": "seat was a bit dirty near the window"
+   "evidence": "seat was a bit dirty near the window",
+   "praise": [],
+   "praise_quote": ""
   },
   "FB-021": {
    "code": "PAY-NO-PASS",
    "severity": 2,
    "reason": "Still no pass and money gone; messaged support twice with no reply.",
-   "evidence": "i have messaged twice already today and no one has replied"
+   "evidence": "i have messaged twice already today and no one has replied",
+   "praise": [],
+   "praise_quote": ""
   },
   "FB-022": {
    "code": "REQ-FEATURE",
    "severity": 4,
    "reason": "Request for an extra pickup stop.",
-   "evidence": "wish the morning bus had one more pickup stop near my place"
+   "evidence": "wish the morning bus had one more pickup stop near my place",
+   "praise": [
+    "service"
+   ],
+   "praise_quote": "overall happy"
   },
   "FB-023": {
    "code": "APP-BUG",
    "severity": 4,
    "reason": "Seat selection screen is confusing.",
-   "evidence": "the seat selection screen is confusing"
+   "evidence": "the seat selection screen is confusing",
+   "praise": [
+    "app"
+   ],
+   "praise_quote": "app is fine"
   },
   "FB-024": {
    "code": "PAY-NO-PASS",
    "severity": 2,
    "reason": "Pass renewal deducted, no active pass, on both routes the rider uses.",
-   "evidence": "amount was deducted, app still says no active pass"
+   "evidence": "amount was deducted, app still says no active pass",
+   "praise": [],
+   "praise_quote": ""
   },
   "FB-025": {
    "code": "OPS-AC",
    "severity": 4,
    "reason": "AC slightly too cold.",
-   "evidence": "AC a little cold this morning"
+   "evidence": "AC a little cold this morning",
+   "praise": [
+    "ride"
+   ],
+   "praise_quote": "otherwise comfortable"
   },
   "FB-026": {
    "code": "REQ-FEATURE",
    "severity": 4,
    "reason": "Request for a charging point at every seat.",
-   "evidence": "would be great to have a charging point at every seat"
+   "evidence": "would be great to have a charging point at every seat",
+   "praise": [
+    "ride",
+    "ac"
+   ],
+   "praise_quote": "smooth ride, AC good"
   },
   "FB-027": {
    "code": "APP-TRACKING",
    "severity": 4,
    "reason": "Live tracking lags a few minutes near the highway.",
-   "evidence": "the live tracking lags by a few minutes near the highway"
+   "evidence": "the live tracking lags by a few minutes near the highway",
+   "praise": [
+    "service"
+   ],
+   "praise_quote": "decent service"
   },
   "FB-028": {
    "code": "NONE",
    "severity": 5,
    "reason": "General praise.",
-   "evidence": "Love the service, makes my commute so much easier"
+   "evidence": "Love the service, makes my commute so much easier",
+   "praise": [
+    "service"
+   ],
+   "praise_quote": "Love the service, makes my commute so much easier"
   },
   "FB-029": {
    "code": "REQ-FEATURE",
    "severity": 4,
    "reason": "Asks how to pause a monthly pass; needs a reply.",
-   "evidence": "can I pause my monthly pass for a week while I travel?"
+   "evidence": "can I pause my monthly pass for a week while I travel?",
+   "praise": [],
+   "praise_quote": ""
   },
   "FB-030": {
    "code": "SENT-PRICE",
    "severity": 4,
    "reason": "Sarcastic 5-star review: price went up while buses got older.",
-   "evidence": "great job raising the pass price and giving us older buses"
+   "evidence": "great job raising the pass price and giving us older buses",
+   "praise": [],
+   "praise_quote": ""
   }
  }
 }
