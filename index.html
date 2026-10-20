@@ -55,7 +55,9 @@ button { cursor:pointer; }
 
 /* KPIs */
 .kpis { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin-bottom:22px; }
-.kpi { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 16px; }
+.kpi { display:block; width:100%; text-align:left; font:inherit; color:inherit; cursor:pointer;
+  background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 16px; }
+.kpi:hover { border-color:var(--accent); background:var(--panel2); }
 .kpi b { display:block; font-size:30px; line-height:1.15; font-variant-numeric:tabular-nums; }
 .kpi span { color:var(--muted); font-size:14px; }
 
@@ -92,7 +94,7 @@ button { cursor:pointer; }
 .dot { width:10px; height:10px; border-radius:50%; flex:none; background:var(--s4); }
 .d1{background:var(--s1)} .d2{background:var(--s2)} .d3{background:var(--s3)} .d4{background:var(--s4)} .d5{background:var(--s5)}
 
-.ginfo { padding:16px 18px; margin-bottom:12px; }
+.ginfo { padding:16px 18px; margin-bottom:12px; scroll-margin-top:124px; }
 .ginfo h2 { margin:0 0 4px; font-size:22px; letter-spacing:-.01em; }
 .ginfo dl { display:grid; grid-template-columns:150px 1fr; gap:6px 14px; margin:12px 0 0; font-size:15px; }
 .ginfo dt { color:var(--muted); font-weight:600; }
@@ -398,10 +400,27 @@ function groups() {
   for (const g of d.groups) out.push(Object.assign({}, g, { label: g.title }));
   return out;
 }
-const groupOf = k => k === "all" ? { key: "all", label: "All messages", ids: Object.keys(S.data.messages) } : groups().find(g => g.key === k);
 function todayActs() {
   return S.data.groups.filter(g => !["none", "unlabelled", "other"].includes(g.key)).slice(0, 2);
 }
+// Virtual groups: each KPI tile opens one, so every number on the dashboard shows the tickets behind it.
+function virtualGroups() {
+  const d = S.data, all = Object.values(d.messages), acts = todayActs();
+  return [
+    { key: "all", label: "All messages", title: "All messages", ids: Object.keys(d.messages), desc: "Every message in the batch, most severe first." },
+    { key: "today", label: "Act on today", title: "Act on today", ids: acts.flatMap(g => g.ids), virtual: true, severity: 2,
+      desc: "Fix these today; no escalation slot needed." },
+    { key: "deferred", label: "Deferred to tomorrow", title: "Deferred to tomorrow", virtual: true,
+      ids: d.groups.filter(g => g.key !== "none" && !acts.includes(g)).flatMap(g => g.ids),
+      desc: "Every ticket in a group that is neither the escalation nor today's fixes (no-issue messages excluded). Each group's cost of waiting is in its own panel." },
+    { key: "overridden", label: "Human overrides", title: "Human overrides", virtual: true,
+      ids: all.filter(m => m.label.source === "human").map(m => m.id), desc: "Messages whose label a human changed. The model's original label is in each message's trace." },
+    { key: "check", label: "Labels to check", title: "Labels to check", virtual: true,
+      ids: all.filter(needsCheck).map(m => m.id), desc: "Unlabelled messages, or labels whose quoted evidence isn't in the message text." },
+  ];
+}
+const KEY_ALIAS = { messages: "all", riders: "all" };
+const groupOf = k => { k = KEY_ALIAS[k] || k; return virtualGroups().find(g => g.key === k) || groups().find(g => g.key === k); };
 
 function filtered(ids) {
   const f = S.f, q = f.q.trim().toLowerCase();
@@ -427,12 +446,12 @@ function render() {
   const acts = todayActs();
   const deferredCount = d.groups.filter(g => g.key !== "none" && !acts.includes(g)).reduce((n, g) => n + g.ids.length, 0);
   put($("#kpis"), 
-    kpi(all.length, "messages"), kpi(riders(all), "riders"),
-    kpi(d.escalation ? d.escalation.ids.length : 0, "to escalate"),
-    kpi(acts.reduce((n, g) => n + g.ids.length, 0), "to act on today"),
-    kpi(deferredCount, "deferred to tomorrow"),
-    kpi(all.filter(m => m.label.source === "human").length, "human overrides"),
-    kpi(all.filter(needsCheck).length, "labels to check"));
+    kpi(all.length, "messages", "all"), kpi(riders(all), "riders", "all"),
+    kpi(d.escalation ? d.escalation.ids.length : 0, "to escalate", d.escalation ? "esc" : null),
+    kpi(acts.reduce((n, g) => n + g.ids.length, 0), "to act on today", "today"),
+    kpi(deferredCount, "deferred to tomorrow", "deferred"),
+    kpi(all.filter(m => m.label.source === "human").length, "human overrides", "overridden"),
+    kpi(all.filter(needsCheck).length, "labels to check", "check"));
 
   const cards = [];
   if (d.escalation) cards.push(todayCard(d.escalation, "esc", "Escalate at 11 · Meera's one slot"));
@@ -443,7 +462,16 @@ function render() {
   renderGood(); renderNav(); renderGroupInfo(); renderList(); renderDetail(); renderPrint();
   if (!$("#present").hidden) renderSlide();
 }
-const kpi = (n, label) => el("div", { class: "kpi" }, el("b", {}, n), el("span", {}, label));
+// Each tile opens the tickets behind its number. Filters are cleared so the list count equals the tile.
+const kpi = (n, label, key) => key ? el("button", { type: "button", class: "kpi", "data-key": key,
+    title: "Show these tickets", onclick: () => { clearFilters(); select(key); $("#ginfo").scrollIntoView({ behavior: "smooth", block: "start" }); } },
+    el("b", {}, n), el("span", {}, label))
+  : el("div", { class: "kpi" }, el("b", {}, n), el("span", {}, label));
+function clearFilters() {
+  S.f = { q: "", sev: new Set(), route: "", token: false, human: false, check: false, repeat: false };
+  $("#q").value = ""; $("#route").value = "";
+  for (const id of ["fToken", "fHuman", "fCheck", "fRepeat"]) $("#" + id).checked = false;
+}
 function todayCard(g, key, kicker) {
   return el("button", { class: "tcard " + (key === "esc" ? "esc" : "act"), onclick: () => { select(key); $("#list").scrollIntoView({ behavior: "smooth", block: "start" }); } },
     el("div", { class: "kicker" }, kicker),
@@ -497,7 +525,8 @@ function renderNav() {
   const routes = [...new Set(all.map(m => m.route || "(none)"))].sort();
   put($("#route"), el("option", { value: "" }, "All routes"),
     ...routes.map(r => el("option", { value: r, selected: r === S.f.route }, r)));
-  const items = [{ key: "all", label: "All messages", ids: Object.keys(d.messages) }, ...groups()];
+  const v = virtualGroups(), gs = groups(), esc = gs.filter(g => g.key === "esc");
+  const items = [v[0], ...esc, v[1], v[2], ...gs.filter(g => g.key !== "esc")];
   put($("#groups"), ...items.map(g => el("li", {}, el("button", {
     "aria-current": String(g.key === S.group), onclick: () => select(g.key)
   }, el("span", { class: "dot d" + (g.severity || 4) }), g.label, el("span", { class: "n" }, filtered(g.ids).length)))));
@@ -505,8 +534,17 @@ function renderNav() {
 
 function renderGroupInfo() {
   const g = groupOf(S.group), box = $("#ginfo");
-  if (g.key === "all") {
-    put(box, el("h2", {}, "All messages"), el("div", { class: "meta" }, "Every message in the batch, most severe first."));
+  if (g.key === "today") {
+    const open = k => () => { select(k); $("#ginfo").scrollIntoView({ behavior: "smooth", block: "start" }); };
+    put(box, el("div", { class: "kicker", style: "color:var(--s2)" }, "No escalation slot needed"),
+      el("h2", {}, g.title), el("div", { class: "meta" }, `${g.ids.length} messages · ${g.desc}`),
+      el("dl", {}, todayActs().map(a => [el("dt", {}, a.title),
+        el("dd", {}, el("div", { class: "meta" }, `${a.ids.length} messages · owner: ${a.owner || "unassigned"}`), bullets(a.fix, 2),
+          el("button", { type: "button", class: "btn", style: "margin-top:6px", onclick: open(a.key) }, "Open this group"))])));
+    return;
+  }
+  if (g.key === "all" || g.virtual) {
+    put(box, el("h2", {}, g.title), el("div", { class: "meta" }, `${g.ids.length} messages · ${g.desc}`));
     return;
   }
   const isEsc = g.key === "esc";
