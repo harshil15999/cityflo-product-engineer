@@ -150,8 +150,6 @@ mark.m2 { background:var(--mark2); border-bottom:2px dotted var(--s2); }
 /* Event code (PCS-style, 7 positions): monospace, compact; the tooltip carries the full expansion. */
 .ev { display:inline-block; font:650 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing:.06em;
   padding:0 5px; border-radius:4px; background:var(--panel2); border:1px solid var(--line); color:var(--ink); white-space:nowrap; }
-.evcode { margin-top:10px; padding-top:8px; border-top:1px solid var(--line); }
-.evcode > small { display:block; font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:4px; }
 .evone + .evone { margin-top:10px; }
 .evh { display:flex; flex-wrap:wrap; align-items:center; gap:4px 6px; }
 .evh .ev { font-size:13.5px; }
@@ -166,31 +164,11 @@ table.evt { width:100%; border-collapse:collapse; margin-top:4px; font-size:13.5
 .evt .by { color:var(--muted); font-size:12px; white-space:nowrap; }
 .evt td:last-child { overflow-wrap:anywhere; }
 .detailcol { min-width:0; } /* a long event table must not widen the one-column grid on phones */
-.ov .evsel { display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:6px 10px; }
-.ov .evsel label { display:grid; gap:2px; min-width:0; font-size:13px; }
-.ov .evsel label > span { color:var(--muted); font-weight:600; }
-.ov .evsel select { width:100%; padding:6px 8px; }
-.ov .evsel output { padding:6px 8px; border:1px dashed var(--line); border-radius:8px; color:var(--muted); font-size:13.5px; overflow-wrap:anywhere; }
 dialog .evv { display:inline-block; margin:0 10px 2px 0; font-size:14px; }
 dialog .evv code, dialog dt code { font:700 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 dialog .evtables { font-size:13.5px; margin:4px 0 12px; padding-left:1.2em; }
-.coding { margin:12px 0; padding:10px 12px; border-radius:8px; background:var(--panel2); font-size:14.5px; }
-.coding > small { display:block; font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:4px; }
-.coding dl { display:grid; grid-template-columns:96px minmax(0, 1fr); gap:6px 10px; margin:0; }
-.coding dt { color:var(--muted); font-weight:600; }
-.coding dd { margin:0; display:grid; gap:4px; }
-.coding .cq { color:var(--muted); font-style:italic; overflow-wrap:anywhere; }
-.coding .meta { font-size:13.5px; margin-top:6px; }
-.coding ul { margin:2px 0 0; padding-left:1.15em; }
 .groups .also { color:var(--muted); font-size:12px; white-space:nowrap; }
 .groups .aonly button { color:var(--muted); font-size:14px; }
-.ov fieldset { grid-column:1 / -1; border:1px solid var(--line); border-radius:8px; padding:6px 10px 8px; margin:0; min-width:0; }
-.ov legend { font-size:13px; font-weight:700; color:var(--muted); padding:0 4px; }
-.ov .boxes { display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:2px 10px; font-size:13.5px; max-height:220px; overflow:auto; }
-.ov .boxes label { display:flex; gap:6px; align-items:baseline; min-width:0; }
-.ov .boxes label span { overflow-wrap:anywhere; }
-.ov .boxes label.off { color:var(--muted); }
-.ov fieldset .hint { margin:4px 0 0; }
 dialog ol.rules { padding-left:1.4em; display:grid; gap:4px; }
 dialog dl.legend { display:grid; grid-template-columns:auto 1fr; gap:6px 12px; align-items:baseline; }
 dialog dl.legend dd { margin:0; }
@@ -198,12 +176,61 @@ dialog dl.legend dd { margin:0; }
 .trace div { padding:10px 12px; border-radius:8px; background:var(--panel2); font-size:15px; }
 .trace .h { background:var(--human); }
 .trace small { display:block; font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:2px; }
-.ov { display:grid; grid-template-columns:1fr 130px; gap:8px; margin-top:8px; }
-.ov select, .ov input { padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); }
-.ov input, .ov .hint { grid-column:1 / -1; }
-.ov select { min-width:0; text-overflow:ellipsis; }
-.ov .hint { color:var(--muted); font-size:13.5px; margin-top:-2px; }
-.ov .btn { grid-column:1 / -1; background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:650; }
+/* Label card (read mode): one sentence, one row of chips, why, source. Everything else sits in Details. */
+.lbl { margin:12px 0 8px; padding:10px 14px 11px; border:1px solid var(--line); border-radius:10px; background:var(--panel2); display:grid; gap:6px; }
+.lbl .lh { display:flex; align-items:center; gap:8px; }
+.lbl .lh small, .evone > small, .dsec > small, .rv > small { font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+.lbl .lh .btn { margin-left:auto; padding:4px 12px; font-size:13.5px; font-weight:650; color:var(--accent); }
+.lbl .say, .rv .say { margin:0; font-size:16px; font-weight:600; line-height:1.4; }
+.lbl .why { margin:0; font-size:14.5px; line-height:1.45; }
+.lbl .why b { color:var(--muted); font-weight:650; margin-right:2px; }
+.lbl .src { display:flex; flex-wrap:wrap; align-items:center; gap:2px 6px; font-size:13px; color:var(--muted); }
+.lbl .src .hum { background:var(--human); color:var(--ink); padding:0 6px; border-radius:4px; overflow-wrap:anywhere; }
+.tag.prim { background:var(--ink); color:var(--panel); border-color:var(--ink); }
+details.more { margin:0 0 10px; font-size:14.5px; }
+details.more > summary { cursor:pointer; font-weight:650; font-size:14px; padding:4px 2px; }
+details.more > summary .meta { font-weight:400; font-size:13px; }
+.more .dcode, .more .dsec { padding:10px 0 4px; border-bottom:1px solid var(--line); }
+.more .dh { display:flex; flex-wrap:wrap; align-items:center; gap:2px 6px; }
+.more .cq { color:var(--muted); font-style:italic; overflow-wrap:anywhere; margin:2px 0 6px; }
+.more .dsec ul { margin:2px 0 0; padding-left:1.15em; }
+.evone > small { display:block; margin-bottom:2px; }
+/* Change label: a step-by-step form in place of the card. */
+.wiz { margin:12px 0 10px; padding:12px 14px; border:1px solid var(--accent); border-radius:10px; background:var(--panel); display:grid; gap:8px; }
+.wiz .prog { display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; font-size:13px; color:var(--muted); font-weight:600; }
+.wiz .bars { display:inline-flex; gap:3px; } .wiz .bars i { width:20px; height:4px; border-radius:2px; background:var(--line); } .wiz .bars i.on { background:var(--accent); }
+.wiz .tick { margin-left:auto; font-weight:400; }
+.wiz h3 { margin:0; font-size:18px; line-height:1.3; outline:none; }
+.wiz .help, .wiz .note { margin:0; font-size:13.5px; color:var(--muted); }
+.wiz .note.lock { color:var(--s1); font-weight:650; }
+.wiz .wbody { display:grid; gap:8px; min-width:0; }
+.wiz .opts { display:grid; gap:1px; max-height:min(46vh, 400px); overflow:auto; padding:2px 4px 2px 0; border-block:1px solid var(--line); }
+.wiz .opts.short { max-height:none; border:0; }
+.wiz .fam { font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:8px 0 1px 6px; }
+.wiz .fam .why { text-transform:none; letter-spacing:0; font-weight:500; }
+.wiz .opt { display:grid; grid-template-columns:auto minmax(0, 1fr); gap:0 8px; align-items:baseline; padding:4px 8px; border-radius:7px; cursor:pointer; font-size:14px; line-height:1.35; }
+.wiz .opt:hover { background:var(--panel2); }
+.wiz .opt:has(input:checked) { background:var(--sel); }
+.wiz .opt b { font-weight:650; font-size:13px; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right:6px; }
+.wiz .opt .m { color:var(--ink); }
+.wiz .opt .cur { color:var(--accent); font-weight:650; font-size:12.5px; }
+.wiz .opt.off { color:var(--muted); cursor:not-allowed; } .wiz .opt.off .m { color:var(--muted); }
+.wiz .qs { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:8px 12px; }
+.wiz .q { display:grid; gap:3px; font-size:14px; min-width:0; }
+.wiz .q > span { font-weight:650; }
+.wiz select, .wiz textarea { width:100%; min-width:0; padding:7px 9px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); }
+.wiz select:disabled { color:var(--muted); }
+.wiz .preview { padding:8px 10px; border-radius:8px; background:var(--sel); font-size:15px; font-weight:600; display:grid; gap:2px; }
+.wiz .preview .meta { font-weight:400; font-size:13px; }
+.wiz .review { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:8px; }
+.wiz .rv { display:grid; gap:6px; align-content:start; padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--panel2); }
+.wiz .rv.now { border-color:var(--accent); background:var(--sel); }
+.wiz .rv .say { font-size:14.5px; }
+.wiz .wnav { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding-top:4px; }
+.wiz .btn.primary { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:650; }
+.wiz .btn:disabled { opacity:.5; cursor:not-allowed; }
+.wiz .err { margin:0; }
+.detail .links.same { font-size:14px; margin-top:4px; }
 .links button { border:0; background:none; color:var(--accent); padding:0; font:inherit; text-decoration:underline; }
 .err { color:var(--s1); font-weight:650; }
 .pok{color:var(--ok);background:var(--okbg)}
@@ -445,12 +472,12 @@ const secTag = c => el("span", { class: "tag sectag", title: "Secondary: " + (co
 const modMeans = k => `${(S.data.modifiers || {})[k] || k} (${DERIVED_MODS.has(k) ? "set by code" : "from the model"})`;
 const modTag = k => el("span", { class: "mod" + (DERIVED_MODS.has(k) ? " derived" : ""), title: modMeans(k) }, k);
 // Event codes (PCS-style): one per category code, built and checked by the server. m.events = [primary, ...secondary].
+// Chips show only the primary's event code; the secondaries' codes are in the ticket's Details, each labelled.
 const evs = m => m.events || [];
 const evPrim = m => evs(m).find(e => e.role === "primary");
-const evSecs = m => evs(m).filter(e => e.role === "secondary");
 const evTag = e => e ? el("span", { class: "ev", title: `Event code ${e.dashed}: ${e.expansion}` }, e.code) : null;
 const codeTags = m => el("span", { class: "codes" }, codeTag(m.label.code), evTag(evPrim(m)),
-  secCodes(m.label).map((c, i) => [secTag(c), evTag(evSecs(m)[i])]), (m.modifiers || []).map(modTag));
+  secCodes(m.label).map(secTag), (m.modifiers || []).map(modTag));
 // Event-code prefix search: "S-D" or "SD" finds driver-safety events. Needs 2+ characters, so "Z" alone matches nothing extra.
 const evPrefix = q => { const c = q.trim().toUpperCase().replace(/-/g, ""); return c.length >= 2 && /^[A-Z0-9]+$/.test(c) ? c : null; };
 // Validity tables, mirrored from the server: values allowed at position pos (0-based) given the earlier positions.
@@ -757,134 +784,316 @@ function renderList() {
     el("div", { class: "snip" }, m.text))));
 }
 
+// Ticket panel. Read mode: a compact label card (one sentence, one row of chips, why, source) with the full
+// breakdown tucked into "Details". "Change label" swaps the card for a step-by-step form (the wizard).
 function renderDetail() {
   const box = $("#detail"), m = S.msg && M(S.msg);
+  if (S.wiz && (!m || S.wiz.id !== m.id)) S.wiz = null;  // another ticket: drop an unsaved change
   if (!m) { put(box, el("div", { class: "empty" }, "Select a message.")); return; }
-  const L = m.label, ML = m.model_label, codes = Object.keys(S.data.codes);
-  const hint = el("div", { class: "hint" });
-  const showHint = () => hint.textContent = `${code.value}: ${codeMeans(code.value)} · S${sev.value}: ${SEV_MEANS[sev.value]}`;
-  const code = el("select", { "aria-label": "Code", onchange: () => showHint() }, codes.map(c => el("option", { value: c, selected: c === L.code }, `${c} — ${codeMeans(c)}`)));
-  const sev = el("select", { "aria-label": "Severity", onchange: () => showHint() }, [1, 2, 3, 4, 5].map(s => el("option", { value: s, selected: s === L.severity }, `S${s} · ${SEV[s]}`)));
-  showHint();
-  // Secondary codes: never the primary, never SAF-* (safety goes first) or NONE (stands alone); at most 3.
-  const secBoxes = codes.map(c => el("input", { type: "checkbox", value: c, checked: secCodes(L).includes(c) }));
-  const secLabels = secBoxes.map((b, i) => el("label", {}, b, el("span", {}, el("b", {}, codes[i]), " ", codeMeans(codes[i]))));
-  const secHint = el("div", { class: "hint" });
-  function syncSec() {
-    const n = secBoxes.filter(b => b.checked && b.value !== code.value).length;
-    secBoxes.forEach((b, i) => {
-      const c = b.value;
-      const why = c.startsWith("SAF-") ? "Safety codes go first, as the primary code" : c === "NONE" ? "NONE stands alone"
-        : c === code.value ? "This is the primary code" : code.value === "NONE" ? "NONE stands alone: no secondary codes"
-        : !b.checked && n >= 3 ? "At most 3 secondary codes" : null;
-      if (why && b.checked && why !== "At most 3 secondary codes") b.checked = false;
-      b.disabled = !!why; secLabels[i].title = why || ""; secLabels[i].classList.toggle("off", !!why);
-    });
-    secHint.textContent = `${secBoxes.filter(b => b.checked).length} of 3 · Safety codes go first, as the primary code · NONE stands alone`;
-  }
-  secBoxes.forEach(b => b.addEventListener("change", syncSec));
-  code.addEventListener("change", syncSec);
-  syncSec();
-  const mods = modelMods();
-  const modBoxes = mods.map(k => el("input", { type: "checkbox", value: k, checked: (L.modifiers || []).includes(k) }));
-  const ev = evEditor(m, code);
-  const note = el("input", { placeholder: "Why are you changing it? (required, kept in the audit log)" });
-  const form = el("form", { class: "ov", onsubmit: async e => {
-    e.preventDefault();
-    const ok = await api("/api/override", { batch: S.data.batch, id: m.id, code: code.value, severity: +sev.value, note: note.value,
-      secondary: secBoxes.filter(b => b.checked && !b.disabled).map(b => b.value), modifiers: modBoxes.filter(b => b.checked).map(b => b.value),
-      event: ev.value() });
-    if (ok) load(S.csv);
-  } }, code, sev, hint,
-    el("fieldset", { class: "secbox" }, el("legend", {}, "Secondary codes"), el("div", { class: "boxes" }, secLabels), secHint),
-    el("fieldset", { class: "modbox" }, el("legend", {}, "Modifiers"),
-      el("div", { class: "boxes" }, modBoxes.map((b, i) => el("label", {}, b, el("span", {}, el("b", {}, mods[i]), " ", S.data.modifiers[mods[i]])))),
-      el("div", { class: "hint" }, "Context, not issues. RP, TK and PR are set by code from the batch.")),
-    ev.node, note, el("button", { class: "btn" }, "Save override"));
-
-  // Coding block: primary + secondaries with their quotes, modifiers, and what the coding rules changed.
-  const pq = quoteFor(m, L.code) || (m.evidence_found ? ML.evidence : "");
-  const secs = secCodes(L).map(c => ({ c, q: quoteFor(m, c) }));
-  const quoteLine = q => q ? el("div", { class: "cq" }, "“" + q + "”") : el("div", { class: "cq" }, "No quote (human override)");
-  const coding = el("div", { class: "coding" }, el("small", {}, "Coding"),
-    el("dl", {},
-      el("dt", {}, "Primary"), el("dd", {}, el("div", {}, codeTag(L.code), " ", codeMeans(L.code) || ""), L.code ? quoteLine(pq) : null),
-      secs.length ? [el("dt", {}, "Secondary"), el("dd", {}, secs.map(s => el("div", {}, el("div", {}, secTag(s.c), " ", codeMeans(s.c) || ""), quoteLine(s.q))))] : null,
-      m.modifiers.length ? [el("dt", {}, "Modifiers"), el("dd", {}, m.modifiers.map(k => el("div", {}, modTag(k), " ", modMeans(k))))] : null),
-    "resequenced_from" in ML ? el("div", { class: "meta" }, `Re-sequenced: safety moved to primary (was ${ML.resequenced_from || "no code"})`) : null,
-    (m.dropped_codes || []).length ? el("div", { class: "meta" }, "Removed by coding rules:",
-      el("ul", {}, m.dropped_codes.map(x => el("li", {}, `${x.code} — ${x.reason}`)))) : null,
-    evBreakdown(m));
-
-  put(box, 
+  const L = m.label;
+  const pq = quoteFor(m, L.code) || (m.evidence_found ? m.model_label.evidence : "");
+  put(box,
     el("h2", {}, m.id, " ", pill(L.severity)),
-    el("div", { class: "sub" }, [m.route || "no route", m.channel.replace(/_/g, " "), m.stars ? m.stars + "★" : null,
-      new Date(m.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }), m.rider].filter(Boolean).join(" · ")),
-    el("div", { class: "codes" },
-      codeTags(m),
-      m.token_flag ? el("span", { class: "tag flag", title: S.data.token_rule }, "Contains override token · not trusted · kept in triage") : null),
-    el("div", { class: "quote" }, highlighted(m.text, [{ q: pq }, ...secs.map(s => ({ q: s.q, cls: "m2" }))])),
-    coding,
-    m.same_rider_as.length ? el("div", { class: "links" }, "Same rider also sent: ",
-      m.same_rider_as.map((id, i) => [i ? ", " : "", el("button", { onclick: () => jump(id) }, id)])) : null,
+    el("div", { class: "sub" }, [m.route || "no route", when(m.created_at), m.channel.replace(/_/g, " "),
+      m.stars ? m.stars + "★" : null, m.rider].filter(Boolean).join(" · ")),
+    m.token_flag ? el("span", { class: "tag flag", title: S.data.token_rule }, "Contains override token · not trusted · kept in triage") : null,
+    el("div", { class: "quote" }, highlighted(m.text, [{ q: pq }, ...secCodes(L).map(c => ({ q: quoteFor(m, c), cls: "m2" }))])),
+    S.wiz ? wizard(m) : [labelCard(m), labelDetails(m)],
+    m.same_rider_as.length ? el("div", { class: "links same" }, "Same rider also sent: ",
+      m.same_rider_as.map((id, i) => [i ? ", " : "", el("button", { onclick: () => jump(id) }, id)])) : null);
+  if (S.wiz && S.wiz.focus) { S.wiz.focus = false; box.querySelector(".wiz h3")?.focus({ preventScroll: true }); wizIntoView(box); }
+}
+
+// Keep the form's top in view without sliding the page under the sticky header.
+function wizIntoView(box) {
+  const wz = box.querySelector(".wiz"); if (!wz) return;
+  const sticky = getComputedStyle(box).position === "sticky", top = wz.getBoundingClientRect().top;
+  const min = Math.max($(".top").getBoundingClientRect().bottom, sticky ? box.getBoundingClientRect().top : 0) + 8;
+  if (top < min || (!sticky && top > innerHeight - 120)) sticky ? box.scrollTop -= min - top : scrollBy({ top: top - min });
+}
+const cap = s => s ? s[0].toUpperCase() + s.slice(1) : s;
+const lc = s => /^[A-Z][a-z]/.test(s || "") ? s[0].toLowerCase() + s.slice(1) : s;  // keeps "AC"
+const whenAt = t => when(String(t || "").replace(/([+-]\d\d)(\d\d)$/, "$1:$2"));
+// Plain-English phrasing for event positions; anything not listed falls back to the axis table's meaning.
+const EV_SAY = {
+  system: { D: "by the driver" },
+  location: { S: "in a school zone", H: "on the highway", F: "on a flyover", P: "at the pickup point", E: "throughout the ride",
+    B: "in the booking flow", Y: "during payment or renewal" },
+  who: { R: "affecting the rider", G: "affecting several riders", P: "public at risk" },
+  qualifier: { S: "single report", R: "repeat report", C: "corroborated by another rider", G: "rider says it's ongoing" },
+};
+// One sentence from an event code (7 characters): what happened, by whom, where, who was affected, how often.
+// Z (not stated) and the commute window are left out; no event falls back to the category's meaning.
+function evSentence(code, cat) {
+  const A = S.data.event_axes;
+  if (cat === "NONE" || (code && code[0] === "N")) return "No issue reported.";
+  if (!A || !code) return cat ? cap(codeMeans(cat) || cat) + "." : "Not labelled yet.";
+  const v = i => code[i] !== "Z", mean = i => (A[i].values[code[i]] || "").replace(/\s*\(.*\)/, "");
+  let s = v(2) ? mean(2) : v(1) ? "Problem with the " + lc(mean(1)) : cap(codeMeans(cat) || mean(0));
+  if (v(1) && v(2) && EV_SAY.system[code[1]] && !/driv/i.test(s)) s += " " + EV_SAY.system[code[1]];
+  if (v(3)) s += " " + (EV_SAY.location[code[3]] || lc(mean(3)));
+  if (v(5)) s += ", " + (EV_SAY.who[code[5]] || lc(mean(5)));
+  if (v(6)) s += " — " + (EV_SAY.qualifier[code[6]] || lc(mean(6)));
+  return s + ".";
+}
+const primTag = c => el("span", { class: "tag prim", title: "Main problem: " + (codeMeans(c) || c) }, c || "unlabelled");
+const chipRow = (code, secs, mods) => el("div", { class: "codes" }, primTag(code), secs.map(secTag), mods.map(modTag));
+const evChip = e => e ? el("span", { class: "ev", title: `Event code ${e.dashed}: ${e.expansion}` }, e.code) : null;
+
+function labelCard(m) {
+  const L = m.label, ML = m.model_label, P = evPrim(m), human = L.source === "human";
+  const src = human ? el("span", { class: "hum" }, "Changed by a human · ", L.reason || "no note", " · ", whenAt(L.at))
+    : ML.source === "model" ? "Model label" : ML.source === "mock" ? "Mock label (no model call)" : "Not labelled yet";
+  const why = human ? "" : L.reason || "";
+  return el("section", { class: "lbl", "aria-label": "Label" },
+    el("div", { class: "lh" }, el("small", {}, "Label"),
+      el("button", { type: "button", class: "btn wiz-open", onclick: () => openWizard(m) }, L.code ? "Change label" : "Label this message")),
+    el("p", { class: "say" }, L.code ? evSentence(P && P.code, L.code) : "Not labelled yet."),
+    L.code ? chipRow(L.code, secCodes(L), m.modifiers || []) : null,
+    why ? el("p", { class: "why", title: sentences(why).length > 1 ? why : null }, el("b", {}, "Why "), firstSentence(why),
+      sentences(why).length > 1 ? el("span", { class: "more-dots", "aria-hidden": "true" }, " …") : null) : null,
+    ML.code && !m.evidence_found ? el("p", { class: "err why" }, "The quoted evidence isn't in the message. Check this label.") : null,
+    el("div", { class: "src" }, src, P ? [el("span", { "aria-hidden": "true" }, "·"), "Event ", evChip(P)] : null));
+}
+
+// Everything the old panel showed, collapsed: each code with its meaning, quote and its own event code;
+// modifiers; what code changed; and the model's label next to any human change.
+function labelDetails(m) {
+  const L = m.label, ML = m.model_label;
+  const evFor = (c, role) => evs(m).find(e => e.for === c && e.role === role);
+  const quoteLine = q => el("div", { class: "cq" }, q ? "“" + q + "”" : "No quote (human override)");
+  const block = (c, role) => { const e = evFor(c, role);
+    return el("div", { class: "dcode" },
+      el("div", { class: "dh" }, role === "primary" ? primTag(c) : secTag(c), " ", codeMeans(c) || "",
+        el("span", { class: "meta" }, role === "primary" ? " · main problem" : " · also in this message")),
+      quoteLine(quoteFor(m, c) || (role === "primary" && m.evidence_found ? ML.evidence : "")),
+      e ? evTable(e, role === "primary" ? `Event code for the main problem (${c})` : `Event code for +${c}`) : null); };
+  return el("details", { class: "more" }, el("summary", {}, "Details", el("span", { class: "meta" }, " · codes, quotes, event codes, model vs human")),
+    L.code ? block(L.code, "primary") : null,
+    secCodes(L).map(c => block(c, "secondary")),
+    (m.modifiers || []).length ? el("div", { class: "dsec" }, el("small", {}, "Modifiers"),
+      m.modifiers.map(k => el("div", {}, modTag(k), " ", modMeans(k)))) : null,
+    "resequenced_from" in ML ? el("div", { class: "meta dsec" }, `Re-sequenced: safety moved to primary (was ${ML.resequenced_from || "no code"})`) : null,
+    (m.dropped_codes || []).length ? el("div", { class: "meta dsec" }, "Removed by coding rules:",
+      el("ul", {}, m.dropped_codes.map(x => el("li", {}, `${x.code} — ${x.reason}`)))) : null,
+    (m.event_fixes || []).length ? el("div", { class: "meta dsec" }, "Event codes changed by code:",
+      el("ul", {}, m.event_fixes.map(f => el("li", {}, f.position
+        ? `${f.for} · position ${f.position} (${f.axis}): ${f.from} → ${f.to}. ${f.reason}` : `${f.for}: ${f.reason}`)))) : null,
     el("div", { class: "trace" },
       el("div", {}, el("small", {}, ML.source === "model" ? "Model said" : ML.source === "mock" ? "Mock label (no model call)" : "No label yet"),
-        ML.code ? [`${codeText(ML)} · S${ML.severity}.`, bullets(" " + ML.reason)] : "Label this message by hand below.",
-        ML.code && !m.evidence_found ? el("div", { class: "err" }, "The quoted evidence isn't in the message. Check this label.") : null),
-      L.source === "human" ? el("div", { class: "h" }, el("small", {}, "Human override · " + L.at), `${codeText(L)} · S${L.severity}.`, bullets(" " + L.reason)) : null),
-    el("details", { open: needsCheck(m) || undefined }, el("summary", {}, "Change this label"), form));
+        ML.code ? [`${codeText(ML)} · S${ML.severity}.`, bullets(" " + ML.reason)] : "Use Change label to label it by hand."),
+      L.source === "human" ? el("div", { class: "h" }, el("small", {}, "Human override · " + whenAt(L.at)), `${codeText(L)} · S${L.severity}.`, bullets(" " + L.reason)) : null));
+}
+// One event code: position table (position, axis, value, meaning) under a clear title.
+function evTable(e, title) {
+  return el("div", { class: "evone" }, el("small", {}, title),
+    el("div", { class: "evh" }, el("span", { class: "ev", title: e.code }, e.dashed), el("span", { class: "meta" }, e.expansion)),
+    el("table", { class: "evt" },
+      el("thead", {}, el("tr", {}, ["Pos", "Axis", "Value", "Meaning"].map(h => el("th", { scope: "col" }, h)))),
+      el("tbody", {}, e.positions.map(p => el("tr", { class: p.value === "Z" ? "z" : null },
+        el("td", {}, p.pos), el("td", {}, p.axis), el("td", {}, el("code", {}, p.value)),
+        el("td", {}, p.meaning, p.set_by === "code" ? el("span", { class: "by" }, " · set by code") : null))))));
 }
 
-// Event code breakdown: one table per category code (position, axis, value, meaning), then what code changed.
-function evBreakdown(m) {
-  const E = evs(m);
-  if (!E.length) return null;
-  return el("div", { class: "evcode" }, el("small", {}, "Event code"),
-    E.map(e => el("div", { class: "evone" },
-      el("div", { class: "evh" }, el("span", { class: "ev", title: e.code }, e.dashed),
-        e.role === "primary" ? codeTag(e.for) : secTag(e.for), el("span", { class: "meta" }, e.expansion)),
-      el("table", { class: "evt" },
-        el("thead", {}, el("tr", {}, ["Pos", "Axis", "Value", "Meaning"].map(h => el("th", { scope: "col" }, h)))),
-        el("tbody", {}, e.positions.map(p => el("tr", { class: p.value === "Z" ? "z" : null },
-          el("td", {}, p.pos), el("td", {}, p.axis), el("td", {}, el("code", {}, p.value)),
-          el("td", {}, p.meaning, p.set_by === "code" ? el("span", { class: "by" }, " · set by code") : null))))))),
-    (m.event_fixes || []).length ? el("div", { class: "meta" }, "Changed by code:",
-      el("ul", {}, m.event_fixes.map(f => el("li", {}, f.position
-        ? `${f.for} · position ${f.position} (${f.axis}): ${f.from} → ${f.to}. ${f.reason}` : `${f.for}: ${f.reason}`)))) : null);
+/* ---------- change label: a 5-step guided form ---------- */
+// Families in the order an ops lead thinks about them; the prefix is the category code's first part.
+const FAMILIES = [["SAF", "Safety"], ["PAY", "Money"], ["OPS", "Service"], ["APP", "App"], ["SUP", "Support"],
+  ["REQ", "Request"], ["SENT", "Feedback or price"], ["OTHER", "Other"], ["NONE", "No issue"]];
+const famCodes = p => Object.keys(S.data.codes).filter(c => c.split("-")[0] === p);
+const WIZ_STEPS = ["What is the main problem?", "Anything else in this message?", "Describe what happened", "How serious is it?", "Why are you changing it?"];
+// Event positions asked in step 3 (0-based), as plain questions. Section (0) follows step 1; window (4) is set by code.
+const EV_ASK = { 1: "Which part of the service?", 2: "What happened?", 3: "Where?", 5: "Who was affected?", 6: "Is the rider saying it's ongoing?" };
+
+function openWizard(m) {
+  const L = m.label, P = evPrim(m);
+  const ch = [...(L.event || P?.code || (famOf(L.code) || "N") + "ZZZZZZ")];
+  ch[6] = P && P.said_qualifier ? P.said_qualifier : "Z";
+  S.wiz = { id: m.id, step: 1, focus: true, err: null, skipped: null,
+    d: { code: L.code || null, severity: L.severity || null, secondary: secCodes(L).slice(),
+         modifiers: (L.modifiers || []).filter(k => modelMods().includes(k)), ch, note: "" } };
+  wizNormalize(S.wiz.d);
+  renderDetail();
 }
-// Override: one select per position, each filtered by the validity tables given the positions before it.
-// Section follows the category code; position 5 and the single/repeat/corroborated qualifier are read-only (set by code).
-function evEditor(m, codeSel) {
-  const A = S.data.event_axes, P = evPrim(m);
-  if (!A) return { node: null, value: () => undefined };  // an older server without event codes
-  const ch = [...(m.label.event || (famOf(m.label.code) || "N") + "ZZZZZZ")];
-  ch[6] = P ? P.said_qualifier : "Z";
-  const shownQ = m.label.event ? m.label.event[6] : "Z";
-  const sels = A.map((a, i) => i === 4 ? null : el("select", { "aria-label": `Event code position ${a.pos}: ${a.axis}`, "data-pos": a.pos,
-    disabled: i === 0 || null, title: i === 0 ? "Follows the category code" : null, onchange: e => { ch[i] = e.target.value; sync(); } }));
-  const out = el("div", { class: "hint" });
-  function sync() {
-    ch[0] = famOf(codeSel.value) || ch[0];
-    A.forEach((a, i) => {
-      if (i === 4) return;
-      let opts = i === 0 ? [ch[0]] : evAllowed(i, ch);
-      if (i === 6) opts = opts.filter(v => (S.data.model_qualifiers || "GZ").includes(v));
-      if (!opts.includes(ch[i])) ch[i] = opts.includes("Z") ? "Z" : opts[0];
-      put(sels[i], opts.map(v => el("option", { value: v, selected: v === ch[i] },
-        i === 6 && v === "Z" ? "Z — Not marked ongoing (code decides)" : `${v} — ${a.values[v]}`)));
-      sels[i].value = ch[i];
-    });
-    out.textContent = `${ch.slice(0, 4).join("-")}-${ch[4]}-${ch[5]}-… · position 5 comes from the message time. ` +
-      `Position 7 is re-derived after saving: R repeat, C corroborated or S single are set by code; G only if you mark it ongoing.`;
+function closeWizard() { S.wiz = null; renderDetail(); $("#detail .wiz-open")?.focus(); }
+// Keep the draft valid as answers change: safety locks S1, secondaries obey the rules, event positions obey the tables.
+function wizNormalize(d) {
+  if (!d.code) return;
+  if (d.code.startsWith("SAF-")) d.severity = 1;
+  d.secondary = d.code === "NONE" ? [] : d.secondary.filter(c => c !== d.code && !c.startsWith("SAF-") && c !== "NONE").slice(0, 3);
+  if (!S.data.event_axes) return;
+  const ch = d.ch;
+  ch[0] = famOf(d.code) || ch[0];
+  for (const i of [1, 2, 3, 5, 6]) {
+    let opts = evAllowed(i, ch);
+    if (i === 6) opts = opts.filter(v => (S.data.model_qualifiers || "GZ").includes(v));
+    if (!opts.includes(ch[i])) ch[i] = opts.includes("Z") ? "Z" : opts[0];
   }
-  codeSel.addEventListener("change", sync);
+}
+// Why a code can't be a secondary right now (null = allowed).
+function secBlock(d, c) {
+  return c.startsWith("SAF-") ? "Safety must be the main problem: change step 1 instead"
+    : c === "NONE" ? "“No issue” stands alone" : c === d.code ? "Already the main problem"
+    : d.code === "NONE" ? "“No issue” stands alone" : null;
+}
+const evHasNothing = d => !S.data.event_axes || famOf(d.code) === "N";
+function wizGo(step) {
+  const w = S.wiz, d = w.d, fwd = step > w.step;
+  w.err = null; w.skipped = null;
+  if (fwd) { const e = wizCheck(w.step); if (e) { w.err = e; renderDetail(); return; } }
+  if (step === 2 && d.code === "NONE") { w.skipped = "Skipped “Anything else”: “No issue” stands alone."; step = fwd ? 3 : 1; }
+  if (step === 3 && evHasNothing(d)) { w.skipped = (w.skipped ? w.skipped + " " : "") + "Skipped “Describe what happened”: there is no event to describe."; step = fwd ? 4 : (d.code === "NONE" ? 1 : 2); }
+  w.step = step; w.focus = true; renderDetail();
+}
+function wizCheck(step) {
+  const d = S.wiz.d;
+  if (step === 1 && !d.code) return "Pick the main problem.";
+  if (step === 4 && !d.severity) return "Pick a severity.";
+  if (step === 4 && d.code.startsWith("SAF-") && d.severity !== 1) return "Safety is always S1.";
+  if (step === 5 && !d.note.trim()) return "Say why you're changing it. The note is the audit trail.";
+  return null;
+}
+// Server errors back to the step they belong to.
+const errStep = msg => /always severity/i.test(msg) ? 4 : /valid code and severity/i.test(msg) ? 1
+  : /event code/i.test(msg) ? 3 : /secondary|NONE stands|safety code first|each code once|modifier/i.test(msg) ? 2 : 5;
+
+function wizard(m) {
+  const w = S.wiz, d = w.d, n = WIZ_STEPS.length;
+  const body = [wizStep1, wizStep2, wizStep3, wizStep4, wizStep5][w.step - 1](m, d);
+  const save = el("button", { type: "button", class: "btn primary wiz-save", disabled: !d.note.trim() || null, onclick: () => wizSave(m) }, "Save label");
+  const next = w.step < n ? el("button", { type: "button", class: "btn primary", onclick: () => wizGo(w.step + 1) }, "Next →") : save;
+  if (w.step === n) body.querySelector("textarea")?.addEventListener("input", () => { save.disabled = !d.note.trim(); });
+  return el("section", { class: "wiz", "aria-label": "Change label", onkeydown: e => {
+      if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeWizard(); }
+      else if (e.key === "Enter" && w.step < n && !/^(BUTTON|TEXTAREA|A)$/.test(e.target.tagName)) { e.preventDefault(); wizGo(w.step + 1); }
+    } },
+    el("div", { class: "prog" }, el("span", {}, `Step ${w.step} of ${n}`),
+      el("span", { class: "bars", "aria-hidden": "true" }, WIZ_STEPS.map((_, i) => el("i", { class: i < w.step ? "on" : null }))),
+      el("span", { class: "tick" }, "Changing ", el("b", {}, m.id))),
+    el("h3", { tabindex: "-1" }, WIZ_STEPS[w.step - 1]),
+    w.skipped ? el("p", { class: "note" }, w.skipped) : null,
+    body,
+    w.err ? el("p", { class: "err", role: "alert" }, w.err) : null,
+    el("div", { class: "wnav" },
+      w.step > 1 ? el("button", { type: "button", class: "btn", onclick: () => wizGo(w.step - 1) }, "← Back") : null,
+      el("button", { type: "button", class: "btn", onclick: closeWizard }, "Cancel"),
+      el("span", { class: "spacer" }), next));
+}
+// A radio or checkbox row with its meaning beside it.
+function wizOpt(type, name, value, checked, title, means, onchange, off) {
+  return el("label", { class: "opt" + (off ? " off" : ""), title: off || null },
+    el("input", { type, name, value, checked: checked || null, disabled: off ? true : null, onchange }),
+    el("span", {}, el("b", {}, title), means ? el("span", { class: "m" }, means) : null));
+}
+function wizStep1(m, d) {
+  const cur = m.label.code;
+  const list = el("div", { class: "opts", role: "radiogroup", "aria-label": "Main problem" },
+    FAMILIES.map(([p, name]) => famCodes(p).length ? [el("div", { class: "fam" }, name),
+      famCodes(p).map(c => wizOpt("radio", "wprim", c, c === d.code, c, [codeMeans(c), c === cur ? el("span", { class: "cur" }, " · current") : null],
+        () => { if (d.code && d.code.startsWith("SAF-") && !c.startsWith("SAF-")) d.severity = c === "NONE" ? 5 : null;  // S1 came from the safety rule
+          d.code = c; wizNormalize(d); hint.textContent = c.startsWith("SAF-") ? "Safety: severity will be S1." : ""; }))] : null));
+  const hint = el("p", { class: "note", "aria-live": "polite" }, d.code && d.code.startsWith("SAF-") ? "Safety: severity will be S1." : "");
+  requestAnimationFrame(() => { const o = list.querySelector("input:checked"); if (o) list.scrollTop = o.closest(".opt").offsetTop - list.offsetTop - 60; });
+  return el("div", { class: "wbody" }, el("p", { class: "help" }, "The issue that needs action soonest. Safety always comes first."), list, hint);
+}
+function wizStep2(m, d) {
+  const count = el("span", { class: "meta" });
+  const boxes = [];
+  const sync = () => {
+    count.textContent = `${d.secondary.length} of 3 chosen`;
+    for (const b of boxes) {
+      const why = secBlock(d, b.value) || (!b.checked && d.secondary.length >= 3 ? "At most 3: untick one first" : null);
+      b.disabled = !!why; b.closest(".opt").classList.toggle("off", !!why); b.closest(".opt").title = why || "";
+    }
+  };
+  const famNote = p => p === "SAF" ? "Safety must be the main problem: change step 1 instead." : p === "NONE" ? "“No issue” stands alone." : null;
+  const list = el("div", { class: "opts", "aria-label": "Other issues" },
+    FAMILIES.map(([p, name]) => { const cs = famCodes(p).filter(c => c !== d.code); if (!cs.length) return null;
+      return [el("div", { class: "fam" }, name, famNote(p) ? el("span", { class: "why" }, " · " + famNote(p)) : null),
+        cs.map(c => { const o = wizOpt("checkbox", "wsec", c, d.secondary.includes(c), "+" + c, codeMeans(c), e => {
+          d.secondary = e.target.checked ? [...d.secondary, c] : d.secondary.filter(x => x !== c); sync(); }); boxes.push(o.querySelector("input")); return o; })]; }));
+  const mods = modelMods();
+  const modList = el("div", { class: "opts short", "aria-label": "Context" }, mods.map(k =>
+    wizOpt("checkbox", "wmod", k, d.modifiers.includes(k), k, S.data.modifiers[k], e => {
+      d.modifiers = e.target.checked ? [...d.modifiers, k] : d.modifiers.filter(x => x !== k); })));
   sync();
-  const cells = A.map((a, i) => el("label", {}, el("span", {}, `${a.pos} · ${a.axis}`), i === 4
-    ? el("output", { title: "Set by code from created_at (IST)" }, `${ch[4]} — ${a.values[ch[4]]} (set by code)`)
-    : sels[i]));
-  cells.push(el("label", {}, el("span", {}, "7 · current, set by code"), el("output", { title: "Set by code from the batch" }, `${shownQ} — ${A[6].values[shownQ]}`)));
-  return { node: el("fieldset", { class: "evbox" }, el("legend", {}, "Primary event code"), el("div", { class: "evsel" }, cells), out),
-           value: () => ch.join("") };
+  return el("div", { class: "wbody" },
+    el("p", { class: "help" }, "Other issues the rider raises, up to 3. Main problem: ", el("b", {}, d.code), ". ", count),
+    list,
+    el("div", { class: "fam" }, "Context (not issues)"),
+    modList,
+    el("p", { class: "note" }, "RP, TK and PR (rider sent more than one, override token, praise) are set automatically."));
+}
+function wizStep3(m, d) {
+  const A = S.data.event_axes, ch = d.ch, P = evPrim(m);
+  const sels = {};
+  const preview = el("div", { class: "preview", "aria-live": "polite" });
+  const fill = () => {
+    for (const i of Object.keys(EV_ASK).map(Number)) {
+      let opts = evAllowed(i, ch);
+      if (i === 6) opts = opts.filter(v => (S.data.model_qualifiers || "GZ").includes(v));
+      const label = v => i === 6 ? (v === "G" ? "Yes, ongoing or repeated" : "No, or not said")
+        : v === "Z" ? "Not stated" : A[i].values[v];
+      put(sels[i], opts.map(v => el("option", { value: v, selected: v === ch[i] || null }, label(v))));
+      sels[i].value = ch[i];
+      sels[i].disabled = opts.length < 2;
+      sels[i].title = opts.length < 2 ? "Nothing to choose given the answers above" : "";
+    }
+    put(preview, el("div", {}, evSentence(ch.join(""), d.code)),
+      el("div", { class: "meta" }, "Event code ", el("span", { class: "ev" }, ch.join("-")), " · ",
+        el("span", { title: "Position 7 is finalised after saving" }, "position 7 finalised on save")));
+  };
+  for (const i of Object.keys(EV_ASK).map(Number))
+    sels[i] = el("select", { "data-pos": i + 1, "aria-label": EV_ASK[i], onchange: e => { ch[i] = e.target.value; wizNormalize(d); fill(); } });
+  fill();
+  return el("div", { class: "wbody" },
+    el("p", { class: "help" }, "For the main problem only (", el("b", {}, d.code), "). Answer from the rider's words; leave “Not stated” if they don't say."),
+    el("div", { class: "qs" }, Object.keys(EV_ASK).map(Number).map(i => el("label", { class: "q" }, el("span", {}, EV_ASK[i]), sels[i]))),
+    el("p", { class: "note" }, "Set automatically: ", el("b", {}, A[0].values[ch[0]]), " (from the main problem) · ",
+      el("b", {}, A[4].values[ch[4]] || "—"), " (from the message time) · single, repeat or corroborated (from the batch",
+      P && "SRC".includes(P.code[6]) ? ", now " + lc(A[6].values[P.code[6]]) : "", ")."),
+    preview);
+}
+function wizStep4(m, d) {
+  const saf = d.code.startsWith("SAF-"), cur = m.label.severity;
+  return el("div", { class: "wbody" },
+    saf ? el("p", { class: "note lock" }, "Safety is always S1. To lower it, change the main problem in step 1.")
+      : el("p", { class: "help" }, "Set by the most serious issue in the message.", !d.severity && cur === 1 ? " The old S1 came from the safety code; pick the new severity." : ""),
+    el("div", { class: "opts short", role: "radiogroup", "aria-label": "Severity" }, [1, 2, 3, 4, 5].map(s =>
+      wizOpt("radio", "wsev", s, s === d.severity, `S${s} · ${SEV[s]}`, [cap(SEV_MEANS[s]), s === cur ? el("span", { class: "cur" }, " · current") : null],
+        () => { d.severity = s; }, saf && s !== 1 ? "Safety is always S1" : null))));
+}
+function wizStep5(m, d) {
+  const L = m.label, P = evPrim(m), A = S.data.event_axes;
+  const note = el("textarea", { rows: 2, required: true, "aria-label": "Why are you changing it?", placeholder: "e.g. Rider describes a refund delay, not a double charge",
+    oninput: e => { d.note = e.target.value; } }, d.note);
+  const beforeEv = P ? P.code : L.event || null, afterEv = A && !evHasNothing(d) ? d.ch.join("") : null;
+  const sameEv = (beforeEv || "").slice(0, 4) + (beforeEv || "")[5] === (afterEv || "").slice(0, 4) + (afterEv || "")[5] && (P ? P.said_qualifier : "Z") === (afterEv || "")[6];
+  const changed = [L.code !== d.code && "main problem", secCodes(L).join() !== d.secondary.join() && "other issues",
+    (L.modifiers || []).slice().sort().join() !== d.modifiers.slice().sort().join() && "context",
+    afterEv && !sameEv && "what happened", L.severity !== d.severity && "severity"].filter(Boolean);
+  const card = (title, cls, code, secs, mods, sev, ev) => el("div", { class: "rv " + cls }, el("small", {}, title),
+    el("p", { class: "say" }, code ? evSentence(ev, code) : "Not labelled."),
+    code ? chipRow(code, secs, mods) : null,
+    el("div", { class: "codes" }, pill(sev), ev ? el("span", { class: "ev", title: ev === afterEv ? "Position 7 is finalised after saving" : null }, ev) : null));
+  return el("div", { class: "wbody" },
+    el("label", { class: "q" }, el("span", {}, "Your note (required, kept in the audit log)"), note),
+    el("p", { class: "help" }, changed.length ? "Changing: " + changed.join(", ") + "." : "You haven't changed anything yet; saving records your note against the same label."),
+    el("div", { class: "review" },
+      card("Before", "was", L.code, secCodes(L), (L.modifiers || []), L.severity, beforeEv),
+      card("After", "now", d.code, d.secondary, d.modifiers, d.severity, afterEv)));
+}
+async function wizSave(m) {
+  const w = S.wiz, d = w.d, err = wizCheck(5);
+  if (err) { w.err = err; w.focus = true; renderDetail(); return; }
+  const body = { batch: S.data.batch, id: m.id, code: d.code, severity: d.severity, note: d.note,
+    secondary: d.secondary, modifiers: d.modifiers, event: S.data.event_axes ? d.ch.join("") : undefined };
+  const btn = $("#detail .wiz-save"); if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
+  let r = null, j = {};
+  try { r = await fetch("/api/override", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    j = await r.json().catch(() => ({})); } catch (e) { j = { error: "Couldn't reach the server. Nothing was saved." }; }
+  if (S.wiz !== w) return;  // the user moved on while saving
+  if (r && r.ok) { S.wiz = null; load(S.csv); return; }
+  w.err = j.error || "Save failed. Nothing was saved."; w.step = errStep(w.err); w.focus = true; renderDetail();
 }
 
 function select(key) { S.group = key; S.msg = null; renderNav(); renderGroupInfo(); renderList(); renderDetail(); }
@@ -1070,6 +1279,7 @@ document.addEventListener("keydown", e => {
     return;
   }
   if (typing) { if (e.key === "Escape") e.target.blur(); return; }
+  if (e.target.closest && e.target.closest(".wiz")) return;  // the change-label form keeps its own keys
   if (e.key === "/") { $("#q").focus(); e.preventDefault(); }
   else if (e.key === "ArrowDown" || e.key === "j") { move(1); e.preventDefault(); }
   else if (e.key === "ArrowUp" || e.key === "k") { move(-1); e.preventDefault(); }
@@ -1115,7 +1325,9 @@ window.addEventListener("hashchange", openHash);
     ["#ginfo .links button", "feature/ticket/open/link"],
     ["#detail .links button", "feature/ticket/open/same-rider"],
     ["#slide button", "feature/ticket/open/slide"],
-    ["#detail details:not(:has(.cov)) > summary", "feature/override/open"],
+    ["#detail .wiz-open", "feature/override/open"],
+    ["#detail .wiz-save", "feature/override/save"],
+    ["#detail details.more > summary", "feature/label/details"],
     ["details:has(.cov) > summary", "feature/cost/open"],
     ["dialog form[method=dialog] button", b => "feature/dialog/close/" + slug(b.closest("dialog").id)],
   ];
@@ -1132,13 +1344,13 @@ window.addEventListener("hashchange", openHash);
   document.addEventListener("change", e => fire([["#route", "feature/filter/route"], ["#fToken", "feature/filter/token"],
     ["#fHuman", "feature/filter/human"], ["#fCheck", "feature/filter/check"], ["#fRepeat", "feature/filter/repeat"],
     ["#file", "feature/batch/file"]], e.target), true);
-  document.addEventListener("submit", e => fire([["form.ov", "feature/override/save"], ["form.cov", "feature/cost/save"]], e.target), true);
+  document.addEventListener("submit", e => fire([["form.cov", "feature/cost/save"]], e.target), true);
   // Search: one event per focus session once something is typed; the text itself is never read.
   let searched = false;
   document.addEventListener("focusin", e => { if (e.target.id === "q") searched = false; });
   document.addEventListener("input", e => { if (e.target.id === "q" && !searched) { searched = true; track("feature/search/used"); } });
   document.addEventListener("keydown", e => {
-    if (!S.data || document.querySelector("dialog[open]") || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if (!S.data || document.querySelector("dialog[open]") || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || e.target.closest?.(".wiz")) return;
     const k = e.key, present = !$("#present").hidden;
     const name = present ? (["ArrowRight", "ArrowLeft", "PageDown", "PageUp", " "].includes(k) ? "slide" : /^[fF]$/.test(k) ? "fullscreen" : k === "Escape" ? "exit" : null)
       : k === "/" ? "search" : ["ArrowDown", "ArrowUp", "j", "k"].includes(k) ? "move" : /^[pP]$/.test(k) ? "present" : null;
