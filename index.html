@@ -141,48 +141,30 @@ dialog::backdrop { background:rgb(0 0 0 / .45); }
 dialog pre { white-space:pre-wrap; font-size:13px; background:var(--panel2); padding:12px; border-radius:8px; max-height:55vh; overflow:auto; }
 dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); font-family:ui-monospace, monospace; font-size:13px; }
 
-/* Meeting-room dashboard: one screen, large type, everything visible at once */
+/* Present mode */
 #present { position:fixed; inset:0; z-index:50; background:var(--bg); display:flex; flex-direction:column; }
 #present[hidden] { display:none; }
-.room { flex:1; overflow:auto; padding:clamp(16px, 1.8vw, 36px); display:grid; gap:clamp(12px, 1.3vw, 24px);
-  grid-template-columns:repeat(12, minmax(0, 1fr)); align-content:start; font-size:clamp(15px, .9vw, 22px); line-height:1.38; }
-.rhead { grid-column:span 12; display:flex; flex-wrap:wrap; align-items:baseline; gap:.3em 1em; }
-.rhead h1 { font-size:1.8em; margin:0; letter-spacing:-.02em; }
-.rhead span { color:var(--muted); font-size:1em; }
-.rk { grid-column:span 12; display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:inherit; }
-.rk div { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:.4em .9em; display:flex; align-items:baseline; gap:.45em; }
-.rk b { font-size:1.9em; line-height:1.1; font-variant-numeric:tabular-nums; }
-.rk span { color:var(--muted); font-size:.95em; }
-.rp { display:block; width:100%; text-align:left; background:var(--panel); border:1px solid var(--line); border-radius:16px;
-  padding:.9em 1.1em; font-size:1em; }
-.rp:hover { border-color:var(--accent); }
-.rkick { font-size:.75em; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
-.rp h2 { font-size:1.6em; line-height:1.15; margin:.05em 0 .2em; letter-spacing:-.01em; }
-.rp .rmeta { color:var(--muted); font-size:.9em; margin-bottom:.5em; }
-.r-esc { grid-column:span 7; border-top:10px solid var(--s1); }
-.r-esc .rkick { color:var(--s1); }
-.r-esc blockquote { margin:.35em 0; padding:.3em .75em; border-left:6px solid var(--s1); background:var(--s1bg); border-radius:8px; font-size:1.1em; }
-.r-esc cite { display:block; font-style:normal; font-size:.75em; color:var(--muted); }
-.r-esc ol { margin:.3em 0 0; padding-left:1.4em; } .r-esc li { margin:.15em 0; }
-.r-acts { grid-column:span 5; display:grid; gap:inherit; align-content:start; }
-.r-act { border-top:10px solid var(--s2); } .r-act .rkick { color:var(--s2); }
-.r-act p { margin:.35em 0 0; }
-.r-def { grid-column:span 12; cursor:default; }
-.r-def table { width:100%; border-collapse:collapse; }
-.r-def th { text-align:left; font-size:.75em; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); padding:.4em .6em; border-bottom:2px solid var(--line); }
-.r-def td { padding:.32em .6em; border-bottom:1px solid var(--line); vertical-align:top; }
-.r-def tr.click { cursor:pointer; } .r-def tr.click:hover td { background:var(--panel2); }
-.r-def td:first-child { font-weight:700; white-space:nowrap; }
-.drawer { position:fixed; top:0; right:0; bottom:0; width:min(760px, 62vw); z-index:60; background:var(--panel); border-left:1px solid var(--line);
-  box-shadow:-12px 0 32px rgb(0 0 0 / .18); overflow:auto; padding:clamp(18px, 1.8vw, 32px); font-size:clamp(16px, 1.05vw, 22px); }
-.drawer[hidden] { display:none; }
-.drawer h2 { font-size:1.7em; margin:.1em 0 .3em; }
-.drawer dl { display:grid; grid-template-columns:8em 1fr; gap:.3em .8em; margin:.6em 0 1em; }
-.drawer dt { color:var(--muted); font-weight:650; } .drawer dd { margin:0; }
-.dmsg { border-top:1px solid var(--line); padding:.8em 0; }
-.dmsg .q { font-size:1.08em; line-height:1.55; margin-top:.3em; }
+.slide { flex:1; overflow:auto; padding:clamp(28px, 5vh, 64px) clamp(28px, 6vw, 120px); display:flex; flex-direction:column; justify-content:center; }
+.slide .kick { font-size:clamp(16px, 1.4vw, 24px); font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+.slide h1 { font-size:clamp(36px, 4.4vw, 80px); line-height:1.08; margin:.15em 0 .35em; letter-spacing:-.02em; }
+.slide p, .slide li { font-size:clamp(20px, 1.9vw, 34px); line-height:1.4; }
+.slide .big { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:clamp(12px, 2vw, 32px); margin-top:1em; }
+.slide .big div { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:.8em 1em; }
+.slide .big b { display:block; font-size:clamp(44px, 5vw, 96px); line-height:1; font-variant-numeric:tabular-nums; }
+.slide .big span { font-size:clamp(16px, 1.4vw, 26px); color:var(--muted); }
+.slide .quotes { display:grid; gap:.6em; margin:.4em 0 .8em; }
+.slide blockquote { margin:0; padding:.35em .8em; border-left:8px solid var(--s1); background:var(--panel); border-radius:8px;
+  font-size:clamp(20px, 1.9vw, 34px); line-height:1.35; }
+.slide blockquote cite { display:block; font-style:normal; font-size:.62em; color:var(--muted); margin-top:.2em; }
+.slide .cols { display:grid; grid-template-columns:1fr 1fr; gap:clamp(16px, 3vw, 48px); }
+.slide .card { background:var(--panel); border:1px solid var(--line); border-top:10px solid var(--s2); border-radius:16px; padding:1em 1.2em; }
+.slide .card h2 { font-size:clamp(26px, 2.6vw, 48px); margin:0 0 .3em; line-height:1.15; }
+.slide .card p { font-size:clamp(18px, 1.6vw, 28px); margin:.4em 0 0; }
+.slide table { width:100%; border-collapse:collapse; font-size:clamp(16px, 1.35vw, 25px); line-height:1.35; }
+.slide th { text-align:left; color:var(--muted); font-size:.8em; text-transform:uppercase; letter-spacing:.06em; padding:.4em .6em; border-bottom:2px solid var(--line); }
+.slide td { padding:.55em .6em; border-bottom:1px solid var(--line); vertical-align:top; }
+.slide td:first-child { font-weight:700; white-space:nowrap; }
 .pbar { display:flex; align-items:center; gap:12px; padding:10px 20px; border-top:1px solid var(--line); background:var(--panel); font-size:14px; color:var(--muted); }
-@media (max-width: 1100px) { .r-esc, .r-acts { grid-column:span 12; } .drawer { width:100vw; } }
 
 /* Print = the written report */
 #print { display:none; }
@@ -220,7 +202,7 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
   <span class="spacer"></span>
   <div class="seg" role="group" aria-label="View">
     <button id="vReport" aria-pressed="true">Report</button>
-    <button id="vPresent" aria-pressed="false">Meeting room</button>
+    <button id="vPresent" aria-pressed="false">Present</button>
   </div>
   <button class="btn" id="bBatch">Load batch</button>
   <button class="btn" id="bPrompt">Model prompt</button>
@@ -246,7 +228,7 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
         <label><input type="checkbox" id="fRepeat"> Rider sent more than one</label>
       </div>
       <ul class="groups" id="groups"></ul>
-      <div class="keys"><kbd>↑</kbd><kbd>↓</kbd> move · <kbd>/</kbd> search · <kbd>M</kbd> meeting room</div>
+      <div class="keys"><kbd>↑</kbd><kbd>↓</kbd> move · <kbd>/</kbd> search · <kbd>P</kbd> present</div>
     </aside>
     <div>
       <div class="panel ginfo" id="ginfo"></div>
@@ -256,13 +238,14 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
   </section>
 </div>
 
-<section id="present" hidden aria-label="Meeting room dashboard">
-  <div class="room" id="room"></div>
-  <aside class="drawer" id="drawer" hidden aria-label="Group detail"></aside>
+<section id="present" hidden aria-label="Presentation">
+  <div class="slide" id="slide"></div>
   <div class="pbar">
-    <span id="rMeta"></span>
+    <button class="btn" id="pPrev">← Back</button>
+    <button class="btn" id="pNext">Next →</button>
+    <span id="pCount"></span>
     <span class="spacer"></span>
-    <span>Click any panel or row for its messages · <kbd>F</kbd> full screen · <kbd>Esc</kbd> close / back to report</span>
+    <span><kbd>←</kbd><kbd>→</kbd> slides · <kbd>F</kbd> full screen · <kbd>Esc</kbd> back to report</span>
     <button class="btn" id="pFull">Full screen</button>
     <button class="btn" id="pExit">Exit</button>
   </div>
@@ -290,7 +273,7 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
 
 <script>
 const $ = s => document.querySelector(s);
-const S = { data: null, csv: null, group: "esc", msg: null, list: [], 
+const S = { data: null, csv: null, group: "esc", msg: null, list: [], slide: 0,
             f: { q: "", sev: new Set(), route: "", token: false, human: false, check: false, repeat: false } };
 const SEV = { 1: "Safety", 2: "Money owed", 3: "Service failure", 4: "Minor", 5: "No issue" };
 
@@ -385,7 +368,7 @@ function render() {
   put($("#today"), ...cards);
 
   renderNav(); renderGroupInfo(); renderList(); renderDetail(); renderPrint();
-  if (!$("#present").hidden) renderRoom();
+  if (!$("#present").hidden) renderSlide();
 }
 const kpi = (n, label) => el("div", { class: "kpi" }, el("b", {}, n), el("span", {}, label));
 function todayCard(g, key, kicker) {
@@ -513,79 +496,58 @@ function renderPrint() {
     d.groups.filter(g => !acts.includes(g)).map(g => sec(g, "Deferred: ")));
 }
 
-/* ---------- meeting-room dashboard ---------- */
-function renderRoom() {
+/* ---------- present ---------- */
+function slides() {
   const d = S.data, all = Object.values(d.messages), acts = todayActs(), e = d.escalation;
-  const deferred = d.groups.filter(g => !acts.includes(g) && g.key !== "none");
-  const keyOf = g => g === e ? "esc" : g.key;
-  const panel = (g, cls, kick, body) => el("button", { class: "rp " + cls, onclick: () => openDrawer(keyOf(g)) },
-    el("div", { class: "rkick" }, kick), el("h2", {}, g.title),
-    el("div", { class: "rmeta" }, `${g.ids.length} messages · ${g.riders} riders · ${g.owner || "unassigned"}`), body);
-
-  put($("#room"),
-    el("div", { class: "rhead" }, el("h1", {}, "Rider feedback: what needs attention"),
-      el("span", {}, `${dateRange(all)} · ${d.mode === "live" ? "labelled live by " + d.model : "mock labels"}`)),
-    el("div", { class: "rk" },
-      [[all.length, "messages read"], [riders(all), "riders"], [e ? 1 : 0, "to escalate"],
-       [acts.reduce((n, g) => n + g.ids.length, 0), "to act on today"],
-       [deferred.reduce((n, g) => n + g.ids.length, 0), "deferred, cost known"],
-       [all.filter(m => m.token_flag).length, "token messages kept"]]
-        .map(([n, l]) => el("div", {}, el("b", {}, n), el("span", {}, l)))),
-    e ? panel(e, "r-esc", "Escalate at 11 · Meera's one slot", [
-          e.ids.map(id => { const m = M(id);
-            return el("blockquote", {}, "“" + (m.evidence_found ? m.model_label.evidence : m.text) + "”",
-              el("cite", {}, `${m.id} · ${m.route || "no route"}${m.stars ? " · " + m.stars + "★" : ""}${m.same_rider_as.length ? " · same rider as " + m.same_rider_as.join(", ") : ""}`)); }),
-          e.asks ? [el("div", { class: "rkick", style: "margin-top:.6em" }, "Ask leadership, in order"), el("ol", {}, e.asks.map(a => el("li", {}, a)))] : el("p", {}, e.fix)])
-      : el("div", { class: "rp r-esc" }, el("h2", {}, "Nothing to escalate")),
-    el("div", { class: "r-acts" }, acts.map(g => panel(g, "r-act", "Act today · no slot needed", [
-      el("p", {}, firstSentence(g.fix)), el("p", {}, el("b", {}, "If we wait: "), g.cost)]))),
-    deferred.length ? el("div", { class: "rp r-def" },
-      el("div", { class: "rkick" }, "Deferred to tomorrow"), el("h2", {}, "What waiting costs, and who pays"),
-      el("table", {}, el("thead", {}, el("tr", {}, el("th", {}, "Problem"), el("th", {}, "Riders"), el("th", {}, "Cost of waiting a day"))),
-        el("tbody", {}, deferred.map(g => el("tr", { class: "click", tabindex: "0", onclick: () => openDrawer(g.key),
-          onkeydown: ev => { if (ev.key === "Enter") openDrawer(g.key); } },
-          el("td", {}, g.title), el("td", {}, g.riders), el("td", {}, g.cost)))))) : null);
-  $("#rMeta").textContent = `Batch ${d.batch}`;
+  const deferred = d.groups.filter(g => !acts.includes(g) && !["none"].includes(g.key));
+  const out = [];
+  out.push(() => [el("div", { class: "kick" }, "Rider feedback · " + dateRange(all)),
+    el("h1", {}, `${e ? "One thing to escalate." : "Nothing to escalate."} ${["Nothing", "One", "Two"][acts.length]} to fix today. The rest can wait, at a known cost.`),
+    el("div", { class: "big" },
+      el("div", {}, el("b", {}, all.length), el("span", {}, "messages read")),
+      el("div", {}, el("b", {}, riders(all)), el("span", {}, "riders")),
+      el("div", {}, el("b", {}, e ? 1 : 0), el("span", {}, "escalation")),
+      el("div", {}, el("b", {}, acts.length), el("span", {}, "fixes today")),
+      el("div", {}, el("b", {}, deferred.length), el("span", {}, "groups deferred")))]);
+  if (e) out.push(() => [el("div", { class: "kick", style: "color:var(--s1)" }, "Escalate today"),
+    el("h1", {}, e.title),
+    el("div", { class: "quotes" }, e.ids.map(id => { const m = M(id);
+      return el("blockquote", {}, "“" + (m.evidence_found ? m.model_label.evidence : m.text) + "”",
+        el("cite", {}, `${m.id} · ${m.route || "no route"}${m.stars ? " · " + m.stars + "★" : ""}${m.same_rider_as.length ? " · same rider as " + m.same_rider_as.join(", ") : ""}`)); })),
+    e.asks ? [el("p", { style: "margin:.3em 0 .1em; font-weight:700" }, "What we ask leadership for, in order"),
+      el("ol", {}, e.asks.map(a => el("li", {}, a)))] : el("p", {}, e.fix)]);
+  if (acts.length) out.push(() => [el("div", { class: "kick" }, "Fix today · no escalation needed"),
+    el("h1", {}, "Act on these this morning"),
+    el("div", { class: "cols" }, acts.map(g => el("div", { class: "card" },
+      el("h2", {}, g.title), el("p", { style: "color:var(--muted)" }, `${g.ids.length} messages · ${g.riders} riders · ${g.owner}`),
+      el("p", {}, firstSentence(g.fix)), el("p", {}, el("b", {}, "If we wait: "), g.cost))))]);
+  if (deferred.length) out.push(() => [el("div", { class: "kick" }, "Deferred to tomorrow"),
+    el("h1", {}, "What waiting costs, and who pays"),
+    el("table", {}, el("thead", {}, el("tr", {}, el("th", {}, "Problem"), el("th", {}, "Riders"), el("th", {}, "Cost of waiting a day"))),
+      el("tbody", {}, deferred.map(g => el("tr", {}, el("td", {}, g.title), el("td", {}, g.riders), el("td", {}, g.cost))))) ]);
+  return out;
 }
-
-function openDrawer(key) {
-  const g = groupOf(key), dr = $("#drawer");
-  if (!g) return;
-  put(dr,
-    el("div", { style: "display:flex; gap:8px; justify-content:flex-end" },
-      el("button", { class: "btn", onclick: () => { closeDrawer(); setView("report"); select(key); } }, "Open in report"),
-      el("button", { class: "btn", onclick: closeDrawer }, "Close")),
-    el("div", { class: "rkick" }, key === "esc" ? "Escalate at 11" : "Group"),
-    el("h2", {}, g.title, " ", pill(g.severity)),
-    el("dl", {},
-      el("dt", {}, "Owner"), el("dd", {}, g.owner || "Unassigned"),
-      el("dt", {}, "Fix"), el("dd", {}, g.fix),
-      el("dt", {}, "Cost"), el("dd", {}, g.cost),
-      el("dt", {}, "Risk"), el("dd", {}, g.risk)),
-    filtered(g.ids).map(m => el("div", { class: "dmsg" },
-      el("div", {}, el("b", {}, m.id), " ", pill(m.label.severity), " ", el("span", { class: "tag" }, m.label.code || "unlabelled"),
-        " ", el("span", { class: "meta" }, [m.route || "no route", m.stars ? m.stars + "★" : null, m.same_rider_as.length ? "same rider as " + m.same_rider_as.join(", ") : null].filter(Boolean).join(" · ")),
-        m.token_flag ? [" ", el("span", { class: "tag flag" }, "override token · kept")] : null),
-      el("div", { class: "q" }, highlighted(m.text, m.evidence_found ? m.model_label.evidence : null)),
-      el("div", { class: "meta" }, m.label.reason))));
-  dr.hidden = false;
-  dr.scrollTop = 0;
+function renderSlide() {
+  const s = slides();
+  S.slide = Math.max(0, Math.min(s.length - 1, S.slide));
+  put($("#slide"), s[S.slide]());
+  $("#pCount").textContent = `Slide ${S.slide + 1} of ${s.length}`;
 }
-const closeDrawer = () => { $("#drawer").hidden = true; };
-
 function setView(v) {
-  const room = v === "room";
-  $("#present").hidden = !room;
-  $("#vReport").setAttribute("aria-pressed", String(!room));
-  $("#vPresent").setAttribute("aria-pressed", String(room));
-  if (room) renderRoom();
-  else { closeDrawer(); if (document.fullscreenElement) document.exitFullscreen(); }
+  const present = v === "present";
+  $("#present").hidden = !present;
+  $("#vReport").setAttribute("aria-pressed", String(!present));
+  $("#vPresent").setAttribute("aria-pressed", String(present));
+  if (present) renderSlide();
+  else if (document.fullscreenElement) document.exitFullscreen();
 }
 const fullscreen = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
 
 /* ---------- wiring ---------- */
 $("#vReport").onclick = () => setView("report");
-$("#vPresent").onclick = () => setView("room");
+$("#vPresent").onclick = () => setView("present");
+$("#pPrev").onclick = () => { S.slide--; renderSlide(); };
+$("#pNext").onclick = () => { S.slide++; renderSlide(); };
 $("#pExit").onclick = () => setView("report");
 $("#pFull").onclick = fullscreen;
 $("#bPrint").onclick = () => window.print();
@@ -611,20 +573,22 @@ document.addEventListener("keydown", e => {
   if (!S.data || document.querySelector("dialog[open]")) return;
   const typing = /INPUT|TEXTAREA|SELECT/.test(e.target.tagName);
   if (!$("#present").hidden) {
-    if (e.key === "f" || e.key === "F") fullscreen();
-    else if (e.key === "Escape" && !document.fullscreenElement) { if (!$("#drawer").hidden) closeDrawer(); else setView("report"); }
+    if (["ArrowRight", "PageDown", " "].includes(e.key)) { S.slide++; renderSlide(); e.preventDefault(); }
+    else if (["ArrowLeft", "PageUp"].includes(e.key)) { S.slide--; renderSlide(); e.preventDefault(); }
+    else if (e.key === "f" || e.key === "F") fullscreen();
+    else if (e.key === "Escape" && !document.fullscreenElement) setView("report");
     return;
   }
   if (typing) { if (e.key === "Escape") e.target.blur(); return; }
   if (e.key === "/") { $("#q").focus(); e.preventDefault(); }
   else if (e.key === "ArrowDown" || e.key === "j") { move(1); e.preventDefault(); }
   else if (e.key === "ArrowUp" || e.key === "k") { move(-1); e.preventDefault(); }
-  else if (e.key === "m" || e.key === "M") setView("room");
+  else if (e.key === "p" || e.key === "P") setView("present");
 });
 
 load(null).then(() => {
-  const m = location.hash.match(/^#room(?:\/([\w-]+))?$/);  // #room, or #room/money to open a group
-  if (m) { setView("room"); if (m[1]) openDrawer(m[1]); }
+  const m = location.hash.match(/^#present(?:-(\d+))?$/);  // #present or #present-3 opens that slide
+  if (m) { S.slide = (+m[1] || 1) - 1; setView("present"); }
 });
 </script>
 </body>
