@@ -2,3 +2,4 @@ overrides.jsonl
 __pycache__/
 .venv/
 .claude/
+*.bak

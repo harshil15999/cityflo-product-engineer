@@ -78,6 +78,12 @@ assert status["FB-001"] == "check", status     # same route as FB-004's open saf
 assert status["FB-012"] == "eligible", status
 assert r["working"]["turned"] == []
 
+# Routes with praise count only eligible praise: a safety report or an unchecked driver compliment is not counted.
+routes, excluded = r["working"]["routes"], {e["id"] for e in r["working"]["routes_excluded"]}
+assert excluded == {"FB-001", "FB-004"}, excluded
+assert routes["MUM-AND-LBS-01"] == ["FB-025"], routes
+assert not any(i in excluded for ids in routes.values() for i in ids)
+
 # Watch list: the same rider praises us, then complains later. Original ids and texts, so mock labels apply.
 rows = {x["id"]: x for x in csv.DictReader(io.StringIO(CSV))}
 pair = [dict(rows["FB-028"], rider_id="R-10853"), dict(rows["FB-007"], rider_id="R-10853")]

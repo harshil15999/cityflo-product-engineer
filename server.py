@@ -299,10 +299,6 @@ def whats_working(msgs, by_rider):
     """Praise, compliments and the watch list. Plain code over the labels, no model call."""
     by_id = {m["id"]: m for m in msgs}
     aspects = {p: [m["id"] for m in msgs if p in m["praise"]] for p in PRAISE}
-    routes = defaultdict(list)
-    for m in msgs:
-        if m["praise"] and m["route"]:
-            routes[m["route"]].append(m["id"])
     unsafe_routes = defaultdict(list)
     for m in msgs:
         if m["label"]["severity"] == 1 and m["route"]:
@@ -333,7 +329,21 @@ def whats_working(msgs, by_rider):
                 if a["praise"] and (b["label"]["severity"] or 9) <= 3:
                     turned.append({"rider": a["rider"], "praised": a["id"], "complained": b["id"]})
     mixed = [m["id"] for m in msgs if m["praise"] and (m["label"]["severity"] or 9) <= 4]
-    return {"aspects": {p: v for p, v in aspects.items() if v}, "routes": dict(routes),
+    # Routes with praise count only eligible praise: not a message that also reports a safety
+    # violation, and not a driver compliment still waiting on its trip-record check.
+    status = {d["id"]: d for d in drivers}
+    routes, routes_excluded = defaultdict(list), []
+    for m in msgs:
+        if not (m["praise"] and m["route"]):
+            continue
+        d = status.get(m["id"])
+        if (m["label"]["code"] or "").startswith("SAF-") or m["label"]["severity"] == 1:
+            routes_excluded.append({"id": m["id"], "route": m["route"], "reason": "Same message reports a safety violation."})
+        elif d and d["status"] != "eligible":
+            routes_excluded.append({"id": m["id"], "route": m["route"], "reason": "Driver compliment waiting on the trip-record check."})
+        else:
+            routes[m["route"]].append(m["id"])
+    return {"aspects": {p: v for p, v in aspects.items() if v}, "routes": dict(routes), "routes_excluded": routes_excluded,
             "drivers": drivers, "turned": turned, "mixed": mixed}
 
 
