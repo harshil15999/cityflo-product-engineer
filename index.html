@@ -150,19 +150,9 @@ mark.m2 { background:var(--mark2); border-bottom:2px dotted var(--s2); }
 /* Event code (PCS-style, 7 positions): monospace, compact; the tooltip carries the full expansion. */
 .ev { display:inline-block; font:650 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing:.06em;
   padding:0 5px; border-radius:4px; background:var(--panel2); border:1px solid var(--line); color:var(--ink); white-space:nowrap; }
-.evone + .evone { margin-top:10px; }
 .evh { display:flex; flex-wrap:wrap; align-items:center; gap:4px 6px; }
 .evh .ev { font-size:13.5px; }
 .evh .meta { margin:0; font-size:13px; flex-basis:100%; }
-table.evt { width:100%; border-collapse:collapse; margin-top:4px; font-size:13.5px; }
-.evt th { text-align:left; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding:2px 6px; border-bottom:1px solid var(--line); }
-.evt td { padding:2px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
-.evt td:first-child { color:var(--muted); font-variant-numeric:tabular-nums; width:2.5em; }
-.evt td:nth-child(2) { color:var(--muted); }
-.evt code { font:700 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-.evt tr.z td { color:var(--muted); }
-.evt .by { color:var(--muted); font-size:12px; white-space:nowrap; }
-.evt td:last-child { overflow-wrap:anywhere; }
 .detailcol { min-width:0; } /* a long event table must not widen the one-column grid on phones */
 dialog .evv { display:inline-block; margin:0 10px 2px 0; font-size:14px; }
 dialog .evv code, dialog dt code { font:700 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
@@ -179,9 +169,31 @@ dialog dl.legend dd { margin:0; }
 /* Label card (read mode): one sentence, one row of chips, why, source. Everything else sits in Details. */
 .lbl { margin:12px 0 8px; padding:10px 14px 11px; border:1px solid var(--line); border-radius:10px; background:var(--panel2); display:grid; gap:6px; }
 .lbl .lh { display:flex; align-items:center; gap:8px; }
-.lbl .lh small, .evone > small, .dsec > small, .rv > small { font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+.lbl .lh small, .dsec > small, .rv > small { font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
 .lbl .lh .btn { margin-left:auto; padding:4px 12px; font-size:13.5px; font-weight:650; color:var(--accent); }
 .lbl .say, .rv .say { margin:0; font-size:16px; font-weight:600; line-height:1.4; }
+.lbl .also { margin:-2px 0 0; font-size:13.5px; line-height:1.45; color:var(--muted); display:grid; gap:4px; }
+.lbl .also b { font-weight:650; }
+/* The event code is the card's anchor: big dashed monospace badge, bordered in the severity colour. */
+.lbl .evhead { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px; }
+.lbl .evhead .meta { margin:0; font-size:12.5px; }
+.evbig { display:inline-block; font:700 20px/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing:.04em;
+  padding:2px 10px; border-radius:7px; border:2px solid var(--accent); background:var(--panel); color:var(--ink); white-space:nowrap; }
+.evbig.sv1 { border-color:var(--s1); } .evbig.sv2 { border-color:var(--s2); } .evbig.sv3 { border-color:var(--s3); }
+.evbig.sm { font-size:12px; font-weight:600; padding:0 5px; border-width:1px; border-color:var(--line); border-radius:4px; color:var(--muted); background:transparent; }
+details.how { font-size:13px; color:var(--muted); }
+details.how > summary { cursor:pointer; font-weight:600; color:var(--accent); width:max-content; max-width:100%; }
+.alsoone details.how > summary { font-weight:500; font-size:12.5px; }
+.hrows { list-style:none; margin:4px 0 2px; padding:0; display:grid; gap:3px; }
+.hrows li { display:grid; grid-template-columns:1.3em 5.6em 1fr; gap:0 6px; align-items:baseline; color:var(--ink); }
+.hrows li.z { color:var(--muted); }
+.hrows .hp { grid-row:span 2; color:var(--muted); font-variant-numeric:tabular-nums; }
+.hrows .ha { grid-row:span 2; color:var(--muted); font-size:12px; }
+.hrows .hv code { font-weight:700; }
+.hrows .hb { color:var(--muted); font-size:12px; }
+.hrows .hw { grid-column:3; color:var(--muted); overflow-wrap:anywhere; }
+.how .fix { color:var(--s2); }
+.ev.evsec { background:transparent; color:var(--muted); font-weight:550; font-size:11.5px; }
 .lbl .why { margin:0; font-size:14.5px; line-height:1.45; }
 .lbl .why b { color:var(--muted); font-weight:650; margin-right:2px; }
 .lbl .src { display:flex; flex-wrap:wrap; align-items:center; gap:2px 6px; font-size:13px; color:var(--muted); }
@@ -194,7 +206,6 @@ details.more > summary .meta { font-weight:400; font-size:13px; }
 .more .dh { display:flex; flex-wrap:wrap; align-items:center; gap:2px 6px; }
 .more .cq { color:var(--muted); font-style:italic; overflow-wrap:anywhere; margin:2px 0 6px; }
 .more .dsec ul { margin:2px 0 0; padding-left:1.15em; }
-.evone > small { display:block; margin-bottom:2px; }
 /* Change label: a step-by-step form in place of the card. */
 .wiz { margin:12px 0 10px; padding:12px 14px; border:1px solid var(--accent); border-radius:10px; background:var(--panel); display:grid; gap:8px; }
 .wiz .prog { display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; font-size:13px; color:var(--muted); font-weight:600; }
@@ -472,12 +483,14 @@ const secTag = c => el("span", { class: "tag sectag", title: "Secondary: " + (co
 const modMeans = k => `${(S.data.modifiers || {})[k] || k} (${DERIVED_MODS.has(k) ? "set by code" : "from the model"})`;
 const modTag = k => el("span", { class: "mod" + (DERIVED_MODS.has(k) ? " derived" : ""), title: modMeans(k) }, k);
 // Event codes (PCS-style): one per category code, built and checked by the server. m.events = [primary, ...secondary].
-// Chips show only the primary's event code; the secondaries' codes are in the ticket's Details, each labelled.
+// Chips lead with the primary's event code; each secondary's event code follows its +CODE tag, lighter and "+"-prefixed.
 const evs = m => m.events || [];
 const evPrim = m => evs(m).find(e => e.role === "primary");
+const evSec = (m, c) => evs(m).find(e => e.for === c && e.role === "secondary");
 const evTag = e => e ? el("span", { class: "ev", title: `Event code ${e.dashed}: ${e.expansion}` }, e.code) : null;
+const evSecTag = e => e ? el("span", { class: "ev evsec", title: `Secondary event code ${e.dashed}: ${e.expansion}` }, "+" + e.code) : null;
 const codeTags = m => el("span", { class: "codes" }, codeTag(m.label.code), evTag(evPrim(m)),
-  secCodes(m.label).map(secTag), (m.modifiers || []).map(modTag));
+  secCodes(m.label).map(c => [secTag(c), evSecTag(evSec(m, c))]), (m.modifiers || []).map(modTag));
 // Event-code prefix search: "S-D" or "SD" finds driver-safety events. Needs 2+ characters, so "Z" alone matches nothing extra.
 const evPrefix = q => { const c = q.trim().toUpperCase().replace(/-/g, ""); return c.length >= 2 && /^[A-Z0-9]+$/.test(c) ? c : null; };
 // Validity tables, mirrored from the server: values allowed at position pos (0-based) given the earlier positions.
@@ -824,7 +837,8 @@ const EV_SAY = {
 };
 // One sentence from an event code (7 characters): what happened, by whom, where, who was affected, how often.
 // Z (not stated) and the commute window are left out; no event falls back to the category's meaning.
-function evSentence(code, cat) {
+// brief (secondary "Also" lines): also drops "affecting the rider", which is the default.
+function evSentence(code, cat, brief) {
   const A = S.data.event_axes;
   if (cat === "NONE" || (code && code[0] === "N")) return "No issue reported.";
   if (!A || !code) return cat ? cap(codeMeans(cat) || cat) + "." : "Not labelled yet.";
@@ -832,13 +846,62 @@ function evSentence(code, cat) {
   let s = v(2) ? mean(2) : v(1) ? "Problem with the " + lc(mean(1)) : cap(codeMeans(cat) || mean(0));
   if (v(1) && v(2) && EV_SAY.system[code[1]] && !/driv/i.test(s)) s += " " + EV_SAY.system[code[1]];
   if (v(3)) s += " " + (EV_SAY.location[code[3]] || lc(mean(3)));
-  if (v(5)) s += ", " + (EV_SAY.who[code[5]] || lc(mean(5)));
+  if (v(5) && !(brief && code[5] === "R")) s += ", " + (EV_SAY.who[code[5]] || lc(mean(5)));
   if (v(6)) s += " — " + (EV_SAY.qualifier[code[6]] || lc(mean(6)));
   return s + ".";
 }
 const primTag = c => el("span", { class: "tag prim", title: "Main problem: " + (codeMeans(c) || c) }, c || "unlabelled");
 const chipRow = (code, secs, mods) => el("div", { class: "codes" }, primTag(code), secs.map(secTag), mods.map(modTag));
-const evChip = e => e ? el("span", { class: "ev", title: `Event code ${e.dashed}: ${e.expansion}` }, e.code) : null;
+// "How we got this code": one row per position with who set it and why. Positions 5 and 7 are re-derived here from
+// the payload the same way the server does (commute_window(), derive_qualifiers(), corroborates()).
+const ist = t => { const d = new Date(String(t || "")); if (isNaN(d)) return null;
+  const u = new Date(d.getTime() + 330 * 60000).toISOString(); return { day: u.slice(0, 10), hm: u.slice(11, 16), h: +u.slice(11, 13) }; };
+const winOf = t => { const x = ist(t); return !x ? "Z" : x.h >= 5 && x.h < 12 ? "M" : x.h >= 16 && x.h < 23 ? "E" : "Z"; };
+const evCodesOf = m => evs(m || {}).map(e => e.code);
+const ROUTE_BOUND = "DVCTR";  // driver, vehicle, capacity, timetable, route: corroborated only on the same route
+function corroborates(m, e, o, x) {
+  if (x.slice(0, 3) !== e.slice(0, 3)) return false;
+  if (ROUTE_BOUND.includes(e[1])) {
+    if (!m.route || m.route !== o.route) return false;
+    if (e[0] === "S" && ((ist(m.created_at) || {}).day !== (ist(o.created_at) || {}).day || winOf(m.created_at) !== winOf(o.created_at))) return false;
+  }
+  return true;
+}
+const ONGOING_RE = /\b(again|every ?day|daily|every (?:morning|evening|time|week)|keeps?|always|still|last few \w+|repeatedly)\b/i;
+function qualWhy(m, e) {
+  const c = e.code, q = c[6];
+  if (q === "R") { const ids = (m.same_rider_as || []).filter(i => evCodesOf(M(i)).some(x => x.slice(0, 2) === c.slice(0, 2)));
+    return ids.length ? `repeat: same rider also sent ${ids.join(", ")}` : "repeat (same rider)"; }
+  if (q === "C") { const who = x => x.rider === "anonymous" ? x.id : x.rider;
+    const ids = Object.values(S.data.messages).filter(o => who(o) !== who(m) && evCodesOf(o).some(x => corroborates(m, c, o, x))).map(o => o.id);
+    const scope = ROUTE_BOUND.includes(c[1]) ? (c[0] === "S" ? " on the same route, day and commute" : " on the same route") : "";
+    return ids.length ? `corroborated: another rider${scope} reported the same event (${ids.join(", ")})` : "corroborated (another rider)"; }
+  if (q === "G") { const w = (m.text || "").match(ONGOING_RE); return w ? `ongoing: rider says “${w[0]}”` : "ongoing (rider's words)"; }
+  if (q === "S") return "single report: no repeat from this rider, no matching report from another rider";
+  return "not used for this kind of event";
+}
+function howRows(m, e, cat) {
+  const fx = (m.event_fixes || []).filter(f => f.for === cat);
+  const quote = e.evidence && (m.text || "").includes(e.evidence) ? e.evidence : "";
+  const by = p => p.set_by === "code" ? "code" : p.set_by === "human" ? "human" : "model";
+  const basis = p => {
+    if (p.pos === 1) return `follows the category ${cat} (${lc(p.meaning)})`;
+    if (p.pos === 5) { const x = ist(m.created_at); return x ? `sent at ${x.hm} IST → ${lc(p.meaning)}` : "no usable timestamp"; }
+    if (p.pos === 7) return qualWhy(m, e);
+    if (p.value === "Z") return "not stated in the message";
+    return p.set_by === "human" ? "chosen by a human in Change label" : quote ? "rider wrote “" + quote + "”" : "no quote recorded";
+  };
+  const fixNote = p => fx.filter(f => f.position === p.pos).map(f => el("div", { class: "fix" }, `code changed ${f.from} → ${f.to}: ${f.reason}`));
+  return el("details", { class: "how" }, el("summary", {}, "How we got this code"),
+    fx.filter(f => !f.position).map(f => el("div", { class: "fix" }, f.reason)),
+    el("ol", { class: "hrows" }, e.positions.map(p => el("li", { class: p.value === "Z" ? "z" : null },
+      el("span", { class: "hp" }, p.pos), el("span", { class: "ha" }, p.axis),
+      el("span", { class: "hv" }, el("code", {}, p.value), " ", p.meaning, el("span", { class: "hb" }, " · " + by(p))),
+      el("span", { class: "hw" }, basis(p), fixNote(p))))));
+}
+// The event code as the card's anchor: dashed form, bordered in the severity colour; secondaries use the small variant.
+const evBadge = (e, cat, sev, sec) => el("span", { class: "evbig" + (sec ? " sm" : " sv" + (sev || 0)),
+  title: `${sec ? "Secondary event code" : "Event code"} ${e.dashed}${sec ? ` (+${cat})` : ""}: ${e.expansion}` }, e.dashed);
 
 function labelCard(m) {
   const L = m.label, ML = m.model_label, P = evPrim(m), human = L.source === "human";
@@ -848,16 +911,21 @@ function labelCard(m) {
   return el("section", { class: "lbl", "aria-label": "Label" },
     el("div", { class: "lh" }, el("small", {}, "Label"),
       el("button", { type: "button", class: "btn wiz-open", onclick: () => openWizard(m) }, L.code ? "Change label" : "Label this message")),
+    P ? el("div", { class: "evhead" }, evBadge(P, L.code, L.severity), el("span", { class: "meta" }, "event code · main problem")) : null,
     el("p", { class: "say" }, L.code ? evSentence(P && P.code, L.code) : "Not labelled yet."),
+    P ? howRows(m, P, L.code) : null,
+    L.code && secCodes(L).length ? el("div", { class: "also", "aria-label": "Secondary issues" }, secCodes(L).map(c => { const e = evSec(m, c);
+      return el("div", { class: "alsoone" }, el("div", {}, el("b", {}, "Also: "), lc(evSentence(e && e.code, c, true).replace(/\.$/, "")),
+        e ? [" · ", evBadge(e, c, null, true)] : null), e ? howRows(m, e, c) : null); })) : null,
     L.code ? chipRow(L.code, secCodes(L), m.modifiers || []) : null,
     why ? el("p", { class: "why", title: sentences(why).length > 1 ? why : null }, el("b", {}, "Why "), firstSentence(why),
       sentences(why).length > 1 ? el("span", { class: "more-dots", "aria-hidden": "true" }, " …") : null) : null,
     ML.code && !m.evidence_found ? el("p", { class: "err why" }, "The quoted evidence isn't in the message. Check this label.") : null,
-    el("div", { class: "src" }, src, P ? [el("span", { "aria-hidden": "true" }, "·"), "Event ", evChip(P)] : null));
+    el("div", { class: "src" }, src));
 }
 
-// Everything the old panel showed, collapsed: each code with its meaning, quote and its own event code;
-// modifiers; what code changed; and the model's label next to any human change.
+// Everything else, collapsed: each code with its meaning, quote and its event code (position by position is in
+// "How we got this code" on the card); modifiers; what code changed; and the model's label next to any human change.
 function labelDetails(m) {
   const L = m.label, ML = m.model_label;
   const evFor = (c, role) => evs(m).find(e => e.for === c && e.role === role);
@@ -867,7 +935,7 @@ function labelDetails(m) {
       el("div", { class: "dh" }, role === "primary" ? primTag(c) : secTag(c), " ", codeMeans(c) || "",
         el("span", { class: "meta" }, role === "primary" ? " · main problem" : " · also in this message")),
       quoteLine(quoteFor(m, c) || (role === "primary" && m.evidence_found ? ML.evidence : "")),
-      e ? evTable(e, role === "primary" ? `Event code for the main problem (${c})` : `Event code for +${c}`) : null); };
+      e ? el("div", { class: "evh" }, el("span", { class: "ev", title: e.dashed }, e.code), el("span", { class: "meta" }, e.expansion)) : null); };
   return el("details", { class: "more" }, el("summary", {}, "Details", el("span", { class: "meta" }, " · codes, quotes, event codes, model vs human")),
     L.code ? block(L.code, "primary") : null,
     secCodes(L).map(c => block(c, "secondary")),
@@ -876,25 +944,11 @@ function labelDetails(m) {
     "resequenced_from" in ML ? el("div", { class: "meta dsec" }, `Re-sequenced: safety moved to primary (was ${ML.resequenced_from || "no code"})`) : null,
     (m.dropped_codes || []).length ? el("div", { class: "meta dsec" }, "Removed by coding rules:",
       el("ul", {}, m.dropped_codes.map(x => el("li", {}, `${x.code} — ${x.reason}`)))) : null,
-    (m.event_fixes || []).length ? el("div", { class: "meta dsec" }, "Event codes changed by code:",
-      el("ul", {}, m.event_fixes.map(f => el("li", {}, f.position
-        ? `${f.for} · position ${f.position} (${f.axis}): ${f.from} → ${f.to}. ${f.reason}` : `${f.for}: ${f.reason}`)))) : null,
     el("div", { class: "trace" },
       el("div", {}, el("small", {}, ML.source === "model" ? "Model said" : ML.source === "mock" ? "Mock label (no model call)" : "No label yet"),
         ML.code ? [`${codeText(ML)} · S${ML.severity}.`, bullets(" " + ML.reason)] : "Use Change label to label it by hand."),
       L.source === "human" ? el("div", { class: "h" }, el("small", {}, "Human override · " + whenAt(L.at)), `${codeText(L)} · S${L.severity}.`, bullets(" " + L.reason)) : null));
 }
-// One event code: position table (position, axis, value, meaning) under a clear title.
-function evTable(e, title) {
-  return el("div", { class: "evone" }, el("small", {}, title),
-    el("div", { class: "evh" }, el("span", { class: "ev", title: e.code }, e.dashed), el("span", { class: "meta" }, e.expansion)),
-    el("table", { class: "evt" },
-      el("thead", {}, el("tr", {}, ["Pos", "Axis", "Value", "Meaning"].map(h => el("th", { scope: "col" }, h)))),
-      el("tbody", {}, e.positions.map(p => el("tr", { class: p.value === "Z" ? "z" : null },
-        el("td", {}, p.pos), el("td", {}, p.axis), el("td", {}, el("code", {}, p.value)),
-        el("td", {}, p.meaning, p.set_by === "code" ? el("span", { class: "by" }, " · set by code") : null))))));
-}
-
 /* ---------- change label: a 5-step guided form ---------- */
 // Families in the order an ops lead thinks about them; the prefix is the category code's first part.
 const FAMILIES = [["SAF", "Safety"], ["PAY", "Money"], ["OPS", "Service"], ["APP", "App"], ["SUP", "Support"],
