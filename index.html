@@ -253,7 +253,7 @@ details.rule .bul { font-size:13px; }
 .why-today li { overflow-wrap:anywhere; }
 .costmeta { display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin-top:6px; }
 .tag.src { background:transparent; border-style:dashed; color:var(--muted); font-weight:500; white-space:normal; }
-.costmeta .lbl { color:var(--muted); font-size:13px; }
+.costmeta .cmlbl { color:var(--muted); font-size:13px; }
 .cov { display:grid; gap:8px; margin-top:8px; }
 .cov textarea, .cov input[type=text] { width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); }
 .cov .checks { display:flex; flex-wrap:wrap; gap:4px 14px; margin:0; }
@@ -556,7 +556,7 @@ function costMeta(g, go) {
   const label = src === "model" ? ["Model estimate", ids.length ? [" · from ", idLinks(ids, go)] : ""]
     : src === "mock" ? "Mock" : src === "human" ? "Edited by a human · " + (g.cost_note || "")
     : src === "not_assessed" ? "Not assessed: no issue to cost" : "Written policy (model unavailable)";
-  return el("div", { class: "costmeta" }, el("span", { class: "lbl" }, "Who pays"),
+  return el("div", { class: "costmeta" }, el("span", { class: "cmlbl" }, "Who pays"),
     (g.who_pays || []).length ? g.who_pays.map(w => el("span", { class: "tag" }, w)) : el("span", { class: "tag" }, "nobody pays"),
     el("span", { class: "tag src links" + (src === "human" ? " human" : ""), title: src === "human" && g.model_cost ? "Model/mock said: " + g.model_cost.cost : null }, label));
 }
