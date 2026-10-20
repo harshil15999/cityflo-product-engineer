@@ -1,5 +1,7 @@
 # Rider feedback triage (Cityflo take-home)
 
+Static demo: https://harshil15999.github.io/cityflo-product-engineer/ — read-only mock; run locally for the full tool.
+
 A one-page tool that triages a batch of rider feedback (`data/feedback.csv`, 30 messages) for Meera, the ops lead, who can take one thing upstairs at 11am. It labels each message with a code, a severity and anything the rider sincerely praises, picks the one escalation, groups everything else as "deferred to tomorrow" with an owner, fix, cost of waiting (and who pays it) and risk, shows what is working, and lets a human override any label or cost with a required note. It is a single Python standard-library server (`server.py`) and one HTML page (`index.html`). The reasoning behind the decisions is in [MEMO.md](MEMO.md).
 
 **Start here:**
@@ -17,6 +19,8 @@ Open http://127.0.0.1:8000. Labels come from `data/labels.json`; no network, no 
 You can paste or upload another CSV with the same columns on the page. In mock mode, a message only gets a label if its id is in `data/labels.json` and its text still contains the stored evidence quote; anything else shows as "unlabelled" rather than getting a wrong label.
 
 **Fast read** (header button, off by default, turn it on there; remembered per browser) bolds the first part of each word in rider messages and prose (why today, fix, cost, risk, label sentences) so they scan faster; ids, codes, chips, numbers and forms are left as they are, the text itself never changes, and print is unaffected.
+
+The static demo is served from `demo.json` (the mock payload, no overrides, masked rider handles). If the page can't reach `api/triage` it falls back to that file and turns the write actions off. Regenerate it with `python3 server.py --export demo.json`.
 
 ## Run it live (Claude labels the batch)
 

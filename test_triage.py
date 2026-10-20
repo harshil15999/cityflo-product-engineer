@@ -385,4 +385,13 @@ assert not server.corroborates(mk("R1", am), "OTLZMRS", mk("R1", am), "OVHZMRS")
 cor = {i for i, m in r["messages"].items() if m["label"].get("event", "Z" * 7)[6] == "C"}
 assert cor == {"FB-003", "FB-007", "FB-017", "FB-024"}, cor   # FB-014 (no route) is no longer corroborated
 
+# Static-demo export: mock payload, FB-004/005/010 escalation, masked riders only.
+with tempfile.TemporaryDirectory() as td:
+    out = Path(td) / "demo.json"
+    exp = server.export_demo(out)
+    raw = out.read_text(encoding="utf-8")
+assert set(exp["escalation"]["ids"]) >= {"FB-004", "FB-005", "FB-010"}, exp["escalation"]["ids"]
+assert not re.search(r"R-1\d{4}", raw), "raw rider id in export"
+assert json.loads(raw)["mode"] == "mock"
+
 print("all checks passed")

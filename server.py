@@ -929,7 +929,24 @@ class Handler(BaseHTTPRequestHandler):
             self.send(502, {"error": f"{type(e).__name__}: {e}"})
 
 
+def export_demo(path):
+    """Write the mock-mode payload (no overrides) to a static file for the GitHub Pages demo."""
+    global OVERRIDES
+    if LIVE:
+        raise SystemExit("--export is mock mode only")
+    saved, OVERRIDES = OVERRIDES, ROOT / "no-such-overrides.jsonl"  # never exists: a local overrides.jsonl can't leak
+    try:
+        payload = triage(DEFAULT_CSV.read_text(encoding="utf-8"))
+    finally:
+        OVERRIDES = saved
+    Path(path).write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    return payload
+
+
 if __name__ == "__main__":
+    if "--export" in sys.argv:
+        export_demo(sys.argv[sys.argv.index("--export") + 1])
+        sys.exit(0)
     port = int(os.environ.get("PORT", 8000))
     print(f"{'LIVE' if LIVE else 'MOCK'} mode on http://127.0.0.1:{port}")
     ThreadingHTTPServer(("127.0.0.1", port), Handler).serve_forever()

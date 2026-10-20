@@ -34,6 +34,10 @@ a.btn { display:inline-block; color:inherit; text-decoration:none; }
 .seg button { border:0; background:transparent; padding:7px 16px; font-size:14px; font-weight:600; }
 .seg button[aria-pressed="true"] { background:var(--accent); color:var(--accent-ink); }
 .mode { font-size:12px; font-weight:700; padding:3px 9px; border-radius:20px; background:var(--flag); }
+.banner { margin:0; padding:8px 16px; background:var(--flag); font-size:14px; border-bottom:1px solid var(--line, #ccc); }
+.banner a { font-weight:700; }
+body.static-demo #bBatch { display:none; }
+@media print { .banner { display:none; } }
 .mode.live { background:var(--s3bg); color:var(--s3); }
 
 .wrap { padding:20px 24px 48px; }
@@ -353,6 +357,7 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
   <button class="btn" id="bPrint">Print report</button>
   <button class="btn" id="bFast" aria-pressed="false" title="Bold the start of each word in rider messages and prose so the eye moves faster">Fast read</button>
 </header>
+<div id="demoBanner" class="banner" role="note" hidden>Static demo on GitHub Pages: mock labels, read-only. Run it locally (python3 server.py) to change labels, edit costs, load a batch or use live mode. <a href="https://github.com/harshil15999/cityflo-product-engineer" target="_blank" rel="noopener noreferrer">Repo</a></div>
 
 <div class="wrap">
   <div id="status" class="meta" role="status"></div>
@@ -564,8 +569,19 @@ async function api(url, body) {
 }
 async function load(csv) {
   $("#status").textContent = csv ? "Triaging…" : "Loading…";
-  const j = csv ? await api("/api/triage", { csv }) : await api("/api/triage");
+  let j = null;
+  if (S.static) j = await fetch("./demo.json").then(r => r.json()).catch(() => null);
+  else if (csv) j = await api("api/triage", { csv });
+  else {
+    try { const r = await fetch("api/triage"); if (r.ok) j = await r.json(); } catch (e) {}
+    if (!j) {  // no server (e.g. GitHub Pages): fall back to the exported mock payload, read-only
+      j = await fetch("./demo.json").then(r => r.ok ? r.json() : null).catch(() => null);
+      if (j) { S.static = true; document.body.classList.add("static-demo"); $("#demoBanner").hidden = false; }
+    }
+    if (!j) { put($("#status"), el("span", { class: "err" }, "Couldn't load the triage data.")); return; }
+  }
   if (!j) return;
+  if (S.static) $("#status").textContent = "";
   S.data = j; S.csv = csv;
   if (!groupOf(S.group)) S.group = j.escalation ? "esc" : "all";
   render();
@@ -623,8 +639,8 @@ function filtered(ids) {
 /* ---------- report ---------- */
 function render() {
   const d = S.data, all = Object.values(d.messages);
-  $("#mode").className = "mode" + (d.mode === "live" ? " live" : "");
-  $("#mode").textContent = d.mode === "live" ? "LIVE · " + d.model : "MOCK · no model call";
+  $("#mode").className = "mode" + (d.mode === "live" && !S.static ? " live" : "");
+  $("#mode").textContent = S.static ? "STATIC DEMO" : d.mode === "live" ? "LIVE · " + d.model : "MOCK · no model call";
   $("#meta").textContent = `Batch ${d.batch} · ${dateRange(all)}`;
 
   const acts = todayActs();
@@ -772,13 +788,14 @@ function renderGroupInfo() {
       el("dt", {}, "Risk if unchecked"), el("dd", {}, bullets(g.risk))));
 }
 function costForm(g) {
+  if (S.static) return null;
   const key = g.key === "esc" ? S.data.escalation.key : g.key, opts = S.data.who_pays_options || [];
   const cost = el("textarea", { rows: 4, "aria-label": "Cost of waiting" }, g.cost || "");
   const boxes = opts.map(w => el("input", { type: "checkbox", value: w, checked: (g.who_pays || []).includes(w) }));
   const note = el("input", { type: "text", required: true, placeholder: "Why are you changing it? (required, kept in the audit log)" });
   return el("details", {}, el("summary", {}, "Change cost / who pays"), el("form", { class: "cov", onsubmit: async e => {
     e.preventDefault();
-    const ok = await api("/api/cost_override", { batch: S.data.batch, group: key, cost: cost.value,
+    const ok = await api("api/cost_override", { batch: S.data.batch, group: key, cost: cost.value,
       who_pays: boxes.filter(b => b.checked).map(b => b.value), note: note.value });
     if (ok) load(S.csv);
   } }, cost, el("div", { class: "checks", "aria-label": "Who pays" }, boxes.map((b, i) => el("label", {}, b, " ", opts[i]))),
@@ -916,7 +933,7 @@ function labelCard(m) {
   const why = human ? "" : L.reason || "";
   return el("section", { class: "lbl", "aria-label": "Label" },
     el("div", { class: "lh" }, el("small", {}, "Label"),
-      el("button", { type: "button", class: "btn wiz-open", onclick: () => openWizard(m) }, L.code ? "Change label" : "Label this message")),
+      S.static ? null : el("button", { type: "button", class: "btn wiz-open", onclick: () => openWizard(m) }, L.code ? "Change label" : "Label this message")),
     P ? el("div", { class: "evhead" }, evBadge(P, L.code, L.severity), el("span", { class: "meta" }, "event code · main problem")) : null,
     el("p", { class: "say" }, L.code ? evSentence(P && P.code, L.code) : "Not labelled yet."),
     P ? howRows(m, P, L.code) : null,
@@ -952,7 +969,7 @@ function labelDetails(m) {
       el("ul", {}, m.dropped_codes.map(x => el("li", {}, `${x.code} — ${x.reason}`)))) : null,
     el("div", { class: "trace" },
       el("div", {}, el("small", {}, ML.source === "model" ? "Model said" : ML.source === "mock" ? "Mock label (no model call)" : "No label yet"),
-        ML.code ? [`${codeText(ML)} · S${ML.severity}.`, bullets(" " + ML.reason)] : "Use Change label to label it by hand."),
+        ML.code ? [`${codeText(ML)} · S${ML.severity}.`, bullets(" " + ML.reason)] : (S.static ? "" : "Use Change label to label it by hand.")),
       L.source === "human" ? el("div", { class: "h" }, el("small", {}, "Human override · " + whenAt(L.at)), `${codeText(L)} · S${L.severity}.`, bullets(" " + L.reason)) : null));
 }
 /* ---------- change label: a 5-step guided form ---------- */
@@ -1149,7 +1166,7 @@ async function wizSave(m) {
     secondary: d.secondary, modifiers: d.modifiers, event: S.data.event_axes ? d.ch.join("") : undefined };
   const btn = $("#detail .wiz-save"); if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
   let r = null, j = {};
-  try { r = await fetch("/api/override", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  try { r = await fetch("api/override", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     j = await r.json().catch(() => ({})); } catch (e) { j = { error: "Couldn't reach the server. Nothing was saved." }; }
   if (S.wiz !== w) return;  // the user moved on while saving
   if (r && r.ok) { S.wiz = null; load(S.csv); return; }
@@ -1505,7 +1522,7 @@ window.addEventListener("hashchange", openHash);
   const deeplink = () => { if (/^#ticket=/.test(location.hash)) track("feature/ticket/open/deeplink"); };
   deeplink();
   // Load count.js from the local GoatCounter only; no automatic pageview (it would send the path and query).
-  fetch("/api/config").then(r => r.ok ? r.json() : {}).then(c => {
+  fetch("api/config").then(r => r.ok ? r.json() : {}).then(c => {
     const url = c && c.analytics_url;
     if (!url || !/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(url)) return;
     // A plain link to the local GoatCounter dashboard; clicking it sends nothing.
