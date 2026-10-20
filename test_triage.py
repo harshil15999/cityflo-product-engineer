@@ -166,4 +166,88 @@ for bad in ({"note": ""}, {"who_pays": ["passengers"]}):
     except ValueError:
         pass
 
+# Multi-label coding: primary code first, secondary codes for other issues, "also mentioned" across groups.
+m14 = r["messages"]["FB-014"]
+assert m14["label"]["code"] == "OPS-LATE" and [s["code"] for s in m14["label"]["secondary"]] == ["OPS-AC"]
+by_key = {g["key"]: g for g in [r["escalation"]] + r["groups"]}
+assert {"FB-014", "FB-017"} <= set(by_key["ac"]["also_ids"]), by_key["ac"]["also_ids"]
+assert {"FB-005", "FB-010"} <= set(by_key["late"]["also_ids"]), by_key["late"]["also_ids"]
+assert not set(by_key["ac"]["also_ids"]) & set(by_key["ac"]["ids"])  # also-mentioned is never counted twice
+assert "support" not in by_key
+assert any(g["key"] == "support" and g["also_ids"] == ["FB-021"] for g in r["secondary_only"]), r["secondary_only"]
+assert sum(g["ids"].count("FB-021") for g in by_key.values()) == 1
+for m in r["messages"].values():  # every secondary code is documented by a real quote
+    assert all(s["evidence"] in m["text"] for s in m["label"]["secondary"]), m["id"]
+    assert m["dropped_codes"] == [], m["id"]
+
+# Modifiers: model ones from the label, derived ones from code.
+mods = {i: set(m["modifiers"]) for i, m in r["messages"].items()}
+assert all("RP" in mods[i] for i in ("FB-005", "FB-010", "FB-013", "FB-021"))
+assert all("TK" in mods[i] for i in ("FB-002", "FB-012"))
+assert "PR" in mods["FB-001"] and "PR" not in mods["FB-030"]
+assert {"TP", "LC", "ON"} <= mods["FB-005"] and "SC" in mods["FB-014"]
+assert sum("RP" in v for v in mods.values()) == 4 and sum("TK" in v for v in mods.values()) == 2
+assert len(r["coding_rules"]) == 8
+assert set(r["modifiers"]) == {"SC", "TP", "LC", "ON", "RP", "TK", "PR"}
+
+# Coding rules enforced by code on live output (fake model, no network).
+FAKE = {
+    # A safety issue coded as secondary is resequenced to primary, with severity 1.
+    "FB-007": {"code": "OPS-LATE", "severity": 3, "evidence": "bus was 8 min late",
+               "secondary": [{"code": "SAF-OTHER", "evidence": "missed my connection"}], "modifiers": ["XX", "ON"]},
+    # A secondary code whose quote is not in the message is dropped and recorded; so is a repeat of the primary.
+    "FB-009": {"code": "OPS-COMFORT", "severity": 4, "evidence": "bus was quite crowded today",
+               "secondary": [{"code": "OPS-AC", "evidence": "the AC was freezing"},
+                             {"code": "OPS-COMFORT", "evidence": "couldn't get my usual seat"}], "modifiers": []},
+    # NONE stands alone.
+    "FB-028": {"code": "NONE", "severity": 5, "evidence": "Love the service",
+               "secondary": [{"code": "OPS-LATE", "evidence": "commute"}], "modifiers": []},
+}
+def coding_model(system, user, schema):
+    if system == server.SYSTEM_PROMPT:
+        return {"labels": [dict(lab, **FAKE.get(i, {}), id=i) for i, lab in server.MOCK.items()]}
+    return {"groups": []}
+
+server.LIVE = True
+try:
+    server.call_model = coding_model
+    server.LABEL_CACHE.clear(); server.COST_CACHE.clear()
+    rc = server.triage(CSV)
+    m7 = rc["messages"]["FB-007"]
+    assert m7["label"]["code"] == "SAF-OTHER" and m7["label"]["severity"] == 1
+    assert m7["label"]["evidence"] == "missed my connection"
+    assert m7["label"]["secondary"] == [{"code": "OPS-LATE", "evidence": "bus was 8 min late"}]
+    assert m7["label"]["modifiers"] == ["ON"]  # unknown modifier dropped
+    assert "FB-007" in rc["escalation"]["ids"]
+    m9 = rc["messages"]["FB-009"]
+    assert m9["label"]["secondary"] == []
+    assert {d["code"] for d in m9["dropped_codes"]} == {"OPS-AC", "OPS-COMFORT"}, m9["dropped_codes"]
+    m28 = rc["messages"]["FB-028"]
+    assert m28["label"]["code"] == "NONE" and m28["label"]["secondary"] == []
+    assert m28["dropped_codes"][0]["code"] == "OPS-LATE"
+finally:
+    server.call_model = orig_call
+    server.LIVE = False
+    server.LABEL_CACHE.clear(); server.COST_CACHE.clear()
+
+# Overrides with secondary codes and modifiers.
+server.save_override({"batch": r["batch"], "id": "FB-011", "code": "OPS-AC", "severity": 3, "note": "also late",
+                      "secondary": ["OPS-LATE"], "modifiers": ["ON"]})
+r6 = server.triage(CSV)
+lab11 = r6["messages"]["FB-011"]["label"]
+assert lab11["source"] == "human" and lab11["secondary"] == [{"code": "OPS-LATE", "evidence": ""}]
+assert lab11["modifiers"] == ["ON"] and r6["messages"]["FB-011"]["modifiers"] == ["ON"]
+assert "FB-011" in next(g for g in r6["groups"] if g["key"] == "late")["also_ids"]
+for bad, msg in (({"code": "OPS-LATE", "secondary": ["SAF-OTHER"]}, "safety code first"),
+                 ({"code": "NONE", "severity": 5, "secondary": ["OPS-LATE"]}, "NONE stands alone"),
+                 ({"code": "OPS-LATE", "secondary": ["NONE"]}, "NONE stands alone"),
+                 ({"code": "OPS-LATE", "secondary": ["OPS-LATE"]}, "Each code once"),
+                 ({"code": "OPS-LATE", "secondary": ["BOGUS"]}, "valid secondary"),
+                 ({"code": "OPS-LATE", "modifiers": ["RP"]}, "modifiers")):
+    try:
+        server.save_override(dict({"batch": r["batch"], "id": "FB-007", "severity": 3, "note": "n"}, **bad))
+        raise AssertionError(f"bad override accepted: {bad}")
+    except ValueError as e:
+        assert msg in str(e), (bad, e)
+
 print("all checks passed")

@@ -56,6 +56,10 @@
    "group": "sentiment",
    "desc": "Complaint about price or value with no specific incident."
   },
+  "SUP-NO-REPLY": {
+   "group": "support",
+   "desc": "Support did not reply to the rider."
+  },
   "OTHER": {
    "group": "other",
    "desc": "A real issue that fits no other code."
@@ -178,6 +182,17 @@
     "cityflo"
    ]
   },
+  "support": {
+   "title": "Support not replying",
+   "fix": "Reply to every waiting rider today, oldest first. Check whether the support queue is understaffed.",
+   "cost": "Riders wait without an answer and send repeat messages. Riders pay in time and frustration; the support team pays in a growing queue.",
+   "risk": "Silence turns a fixable problem into a cancellation.",
+   "owner": "Support team",
+   "who_pays": [
+    "riders",
+    "support team"
+   ]
+  },
   "other": {
    "title": "Needs a human look",
    "fix": "Fits no code. Read it and label it by hand.",
@@ -212,7 +227,9 @@
    "praise": [
     "driver"
    ],
-   "praise_quote": "driver was polite and waited the extra minute for me"
+   "praise_quote": "driver was polite and waited the extra minute for me",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-002": {
    "code": "PAY-DOUBLE-CHARGE",
@@ -220,7 +237,9 @@
    "reason": "Charged twice for one booking; second amount not returned.",
    "evidence": "the second amount has not come back yet",
    "praise": [],
-   "praise_quote": ""
+   "praise_quote": "",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-003": {
    "code": "PAY-NO-PASS",
@@ -228,7 +247,9 @@
    "reason": "Payment succeeded and was debited but the pass is not active.",
    "evidence": "UPI shows success and the money is debited but the app says my pass is not active",
    "praise": [],
-   "praise_quote": ""
+   "praise_quote": "",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-004": {
    "code": "SAF-DRV-DISTRACT",
@@ -239,7 +260,9 @@
     "service",
     "driver"
    ],
-   "praise_quote": "genuinely the best part of my morning"
+   "praise_quote": "genuinely the best part of my morning",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-005": {
    "code": "SAF-DRV-RASH",
@@ -247,7 +270,18 @@
    "reason": "Driver crossed the lane divider to overtake at a school crossing with children present. Second report from this rider; also reports lateness.",
    "evidence": "cut across the lane divider to overtake at the school crossing near Powai",
    "praise": [],
-   "praise_quote": ""
+   "praise_quote": "",
+   "secondary": [
+    {
+     "code": "OPS-LATE",
+     "evidence": "bus late again"
+    }
+   ],
+   "modifiers": [
+    "TP",
+    "LC",
+    "ON"
+   ]
   },
   "FB-006": {
    "code": "OPS-ROUTE-CHANGE",
@@ -255,7 +289,9 @@
    "reason": "Pickup point moved with no notification; rider waited at the old spot.",
    "evidence": "pickup point moved this morning and there was no notification, waited at the old spot",
    "praise": [],
-   "praise_quote": ""
+   "praise_quote": "",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-007": {
    "code": "OPS-LATE",
@@ -263,7 +299,9 @@
    "reason": "Bus 8 minutes late; rider missed their connection.",
    "evidence": "bus was 8 min late at the pickup point, missed my connection",
    "praise": [],
-   "praise_quote": ""
+   "praise_quote": "",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-008": {
    "code": "PAY-REFUND",
@@ -271,7 +309,9 @@
    "reason": "Refund for a missed ride last week still not received.",
    "evidence": "requested a refund for a missed ride last week, still not received",
    "praise": [],
-   "praise_quote": ""
+   "praise_quote": "",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-009": {
    "code": "OPS-COMFORT",
@@ -279,7 +319,9 @@
    "reason": "Bus crowded; rider couldn't get their usual seat.",
    "evidence": "bus was quite crowded today, couldn't get my usual seat",
    "praise": [],
-   "praise_quote": ""
+   "praise_quote": "",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-010": {
    "code": "SAF-DRV-RASH",
@@ -287,7 +329,16 @@
    "reason": "Rash driving over several mornings, plus lateness. Same rider as the school-crossing report.",
    "evidence": "the driver has been driving pretty rash the last few mornings",
    "praise": [],
-   "praise_quote": ""
+   "praise_quote": "",
+   "secondary": [
+    {
+     "code": "OPS-LATE",
+     "evidence": "bus late again"
+    }
+   ],
+   "modifiers": [
+    "ON"
+   ]
   },
   "FB-011": {
    "code": "OPS-AC",
@@ -295,7 +346,9 @@
    "reason": "AC barely cooling; stuffy the whole ride.",
    "evidence": "AC was barely cooling today, felt stuffy the whole way",
    "praise": [],
-   "praise_quote": ""
+   "praise_quote": "",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-012": {
    "code": "NONE",
@@ -306,7 +359,9 @@
     "seats",
     "driver"
    ],
-   "praise_quote": "seats fine, driver fine"
+   "praise_quote": "seats fine, driver fine",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-013": {
    "code": "PAY-NO-PASS",
@@ -314,15 +369,29 @@
    "reason": "Pass renewal debited but the pass still shows expired.",
    "evidence": "money got debited for my monthly pass renewal but the pass still shows expired",
    "praise": [],
-   "praise_quote": ""
+   "praise_quote": "",
+   "secondary": [],
+   "modifiers": [
+    "ON"
+   ]
   },
   "FB-014": {
    "code": "OPS-LATE",
    "severity": 3,
    "reason": "Sarcastic 5-star review: bus 25 minutes late again and AC off the whole ride.",
-   "evidence": "25 minutes late AGAIN and the AC was off the entire ride",
+   "evidence": "25 minutes late AGAIN",
    "praise": [],
-   "praise_quote": ""
+   "praise_quote": "",
+   "secondary": [
+    {
+     "code": "OPS-AC",
+     "evidence": "the AC was off the entire ride"
+    }
+   ],
+   "modifiers": [
+    "SC",
+    "ON"
+   ]
   },
   "FB-015": {
    "code": "APP-BUG",
@@ -333,7 +402,9 @@
     "ride",
     "ac"
    ],
-   "praise_quote": "good ride overall, AC perfect"
+   "praise_quote": "good ride overall, AC perfect",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-016": {
    "code": "OPS-ROUTE-CHANGE",
@@ -341,15 +412,26 @@
    "reason": "Bus took a different route from the one on the map, on a route with a safety incident.",
    "evidence": "driver took a different route than the map showed",
    "praise": [],
-   "praise_quote": ""
+   "praise_quote": "",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-017": {
    "code": "OPS-LATE",
    "severity": 3,
    "reason": "Bus late every day and AC never works (Hindi).",
-   "evidence": "bus roz late aati hai, AC kabhi chalta nahi",
+   "evidence": "bus roz late aati hai",
    "praise": [],
-   "praise_quote": ""
+   "praise_quote": "",
+   "secondary": [
+    {
+     "code": "OPS-AC",
+     "evidence": "AC kabhi chalta nahi"
+    }
+   ],
+   "modifiers": [
+    "ON"
+   ]
   },
   "FB-018": {
    "code": "APP-BUG",
@@ -357,7 +439,9 @@
    "reason": "App logged the rider out mid-booking.",
    "evidence": "app logged me out mid-booking and i had to start the whole thing over",
    "praise": [],
-   "praise_quote": ""
+   "praise_quote": "",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-019": {
    "code": "OPS-COMFORT",
@@ -367,7 +451,9 @@
    "praise": [
     "seats"
    ],
-   "praise_quote": "seats are comfortable"
+   "praise_quote": "seats are comfortable",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-020": {
    "code": "OPS-COMFORT",
@@ -375,15 +461,26 @@
    "reason": "Dirty seat; not acceptable on a premium service.",
    "evidence": "seat was a bit dirty near the window",
    "praise": [],
-   "praise_quote": ""
+   "praise_quote": "",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-021": {
    "code": "PAY-NO-PASS",
    "severity": 2,
    "reason": "Still no pass and money gone; messaged support twice with no reply.",
-   "evidence": "i have messaged twice already today and no one has replied",
+   "evidence": "still no pass and the amount is gone from my account",
    "praise": [],
-   "praise_quote": ""
+   "praise_quote": "",
+   "secondary": [
+    {
+     "code": "SUP-NO-REPLY",
+     "evidence": "i have messaged twice already today and no one has replied"
+    }
+   ],
+   "modifiers": [
+    "ON"
+   ]
   },
   "FB-022": {
    "code": "REQ-FEATURE",
@@ -393,7 +490,9 @@
    "praise": [
     "service"
    ],
-   "praise_quote": "overall happy"
+   "praise_quote": "overall happy",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-023": {
    "code": "APP-BUG",
@@ -403,7 +502,9 @@
    "praise": [
     "app"
    ],
-   "praise_quote": "app is fine"
+   "praise_quote": "app is fine",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-024": {
    "code": "PAY-NO-PASS",
@@ -411,7 +512,9 @@
    "reason": "Pass renewal deducted, no active pass, on both routes the rider uses.",
    "evidence": "amount was deducted, app still says no active pass",
    "praise": [],
-   "praise_quote": ""
+   "praise_quote": "",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-025": {
    "code": "OPS-AC",
@@ -421,7 +524,9 @@
    "praise": [
     "ride"
    ],
-   "praise_quote": "otherwise comfortable"
+   "praise_quote": "otherwise comfortable",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-026": {
    "code": "REQ-FEATURE",
@@ -432,7 +537,9 @@
     "ride",
     "ac"
    ],
-   "praise_quote": "smooth ride, AC good"
+   "praise_quote": "smooth ride, AC good",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-027": {
    "code": "APP-TRACKING",
@@ -442,7 +549,9 @@
    "praise": [
     "service"
    ],
-   "praise_quote": "decent service"
+   "praise_quote": "decent service",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-028": {
    "code": "NONE",
@@ -452,7 +561,9 @@
    "praise": [
     "service"
    ],
-   "praise_quote": "Love the service, makes my commute so much easier"
+   "praise_quote": "Love the service, makes my commute so much easier",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-029": {
    "code": "REQ-FEATURE",
@@ -460,7 +571,9 @@
    "reason": "Asks how to pause a monthly pass; needs a reply.",
    "evidence": "can I pause my monthly pass for a week while I travel?",
    "praise": [],
-   "praise_quote": ""
+   "praise_quote": "",
+   "secondary": [],
+   "modifiers": []
   },
   "FB-030": {
    "code": "SENT-PRICE",
@@ -468,7 +581,11 @@
    "reason": "Sarcastic 5-star review: price went up while buses got older.",
    "evidence": "great job raising the pass price and giving us older buses",
    "praise": [],
-   "praise_quote": ""
+   "praise_quote": "",
+   "secondary": [],
+   "modifiers": [
+    "SC"
+   ]
   }
  }
 }
