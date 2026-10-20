@@ -1,26 +1,46 @@
 # Rider feedback triage (Cityflo take-home)
 
-Static demo: https://harshil15999.github.io/cityflo-product-engineer/ — read-only mock; run locally for the full tool.
+**Try the mock version:** https://harshil15999.github.io/cityflo-product-engineer/
 
-A one-page tool that triages a batch of rider feedback (`data/feedback.csv`, 30 messages) for Meera, the ops lead, who can take one thing upstairs at 11am. It labels each message with a code, a severity and anything the rider sincerely praises, picks the one escalation, groups everything else as "deferred to tomorrow" with an owner, fix, cost of waiting (and who pays it) and risk, shows what is working, and lets a human override any label or cost with a required note. It is a single Python standard-library server (`server.py`) and one HTML page (`index.html`). The reasoning behind the decisions is in [MEMO.md](MEMO.md).
+A read-only static demo with mock labels. Run it locally for the full tool: changing labels, editing costs, loading a new batch and live mode.
 
-**Start here:**
-- [MEMO.md](MEMO.md): the memo to Meera — the one thing to escalate, the decision records, what's deferred and what it costs, what's cut.
-- [decisions.jsonl](decisions.jsonl): the steering ledger. Each line quotes a message the candidate typed and anchors it in the raw session transcript as `turn N (transcript line L)`: N counts only the candidate's typed prompts in order (not tool results or task notifications), and L is the line in the raw `.jsonl` transcript. A few decisions were typed while the agent was mid-task; those are anchored as `message sent mid-turn (transcript line L)`.
+## What it does
 
-## Run it (mock mode, no setup)
+It's 9:40am. Thirty rider messages (feedback and support chats, mixed, untriaged) have landed, and standup is at 11. This tool reads the batch and turns it into one decision and a priced backlog:
+
+- **One thing to escalate.** It picks the single issue to take to leadership, with a "Why today" built from the batch. In this batch that's driver safety: a driver cutting across the lane divider at a school crossing, and another watching a movie on his phone on the highway.
+- **What to fix today without escalating.** Money taken with no pass delivered, and late buses.
+- **Everything else, deferred at a known cost.** Each group shows its owner, fix, the cost of waiting a day, who pays that cost, and the risk if it's never fixed.
+- **What's working.** What riders praise, which driver compliments are safe to reward, and a watch list of happy riders who start complaining.
+- **Labels a human can check and change.** Each message gets a primary code, secondary codes and a 7-position event code (like `S-D-U-S-M-P-R`), with the rider's exact words as evidence and a "How we got this code" breakdown. Anyone can change a label through a short guided form, with a required reason.
+
+Safety is always severity 1, rider ids never leave the server, and a message's own text can never hide it from triage.
+
+## Who it's for
+
+**Meera, the ops lead.** Her job is reducing how many tickets reach the queue in the first place, and she can take exactly one thing upstairs at 11. The dashboard answers her question directly: which one, what it costs to sit on the rest until tomorrow, and who eats that cost. Present mode shows the same answer in large type for the meeting room.
+
+The reasoning behind every call is in [MEMO.md](MEMO.md), which opens with a one-page answer.
+
+## Set it up locally
+
+You need Python 3. Nothing else for the default mock mode.
 
 ```
+git clone https://github.com/harshil15999/cityflo-product-engineer.git
+cd cityflo-product-engineer
 python3 server.py
 ```
 
-Open http://127.0.0.1:8000. Labels come from `data/labels.json`; no network, no API key, no dependencies beyond Python 3. Use `PORT=8766 python3 server.py` to pick another port.
+Open http://127.0.0.1:8000. Labels come from `data/labels.json`, so there's no network call and no API key. Use `PORT=8766 python3 server.py` to pick another port.
 
 You can paste or upload another CSV with the same columns on the page. In mock mode, a message only gets a label if its id is in `data/labels.json` and its text still contains the stored evidence quote; anything else shows as "unlabelled" rather than getting a wrong label.
 
-**Fast read** (header button, off by default, turn it on there; remembered per browser) bolds the first part of each word in rider messages and prose (why today, fix, cost, risk, label sentences) so they scan faster; ids, codes, chips, numbers and forms are left as they are, the text itself never changes, and print is unaffected.
+**Fast read** (header button, off by default, remembered per browser) bolds the first part of each word in rider messages and prose so they scan faster; ids, codes, numbers and forms stay as they are, and the text itself never changes.
 
 The static demo is served from `demo.json` (the mock payload, no overrides, masked rider handles). If the page can't reach `api/triage` it falls back to that file and turns the write actions off. Regenerate it with `python3 server.py --export demo.json`.
+
+**For reviewers:** [decisions.jsonl](decisions.jsonl) is the steering ledger. Each line quotes a message the candidate typed and anchors it in the raw session transcript as `turn N (transcript line L)`: N counts only the candidate's typed prompts in order (not tool results or task notifications), and L is the line in the raw `.jsonl` transcript. Decisions typed while the agent was mid-task are anchored as `message sent mid-turn (transcript line L)`.
 
 ## Run it live (Claude labels the batch)
 
