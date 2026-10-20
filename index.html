@@ -118,6 +118,9 @@ button { cursor:pointer; }
 .tag.human { background:var(--human); border-color:transparent; }
 
 .detail { padding:18px 20px; }
+/* The column stretches to the row's height so the sticky ticket panel actually sticks while the list scrolls. */
+.detailcol { align-self:stretch; }
+.detail.flash { outline:3px solid var(--accent); outline-offset:2px; }
 .detail h2 { margin:0; font-size:24px; }
 .detail .sub { color:var(--muted); font-size:14px; margin:2px 0 10px; }
 .quote { font-size:18px; line-height:1.65; margin:12px 0 14px; padding:12px 16px; background:var(--panel2); border-left:4px solid var(--line); border-radius:6px; max-width:70ch; }
@@ -220,7 +223,7 @@ dialog textarea { width:100%; min-height:220px; padding:10px; border:1px solid v
 
 @media (max-width: 1250px) {
   .work { grid-template-columns:260px minmax(0, 1fr); }
-  .work > .detailcol { grid-column:1 / -1; }
+  .work > .detailcol { grid-column:1 / -1; position:relative; z-index:1; } /* paint over the sticky nav when it overhangs */
   .detailcol .sticky { position:static; max-height:none; }
 }
 @media (max-width: 900px) {
@@ -357,7 +360,7 @@ function bullets(t, max) {
 const aspectName = a => a === "ac" ? "AC" : a[0].toUpperCase() + a.slice(1);
 const when = t => new Date(t).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
 const idLinks = (ids, go) => ids.map((id, i) => [i ? ", " : "", go ? el("button", { type: "button", onclick: () => go(id) }, id) : id]);
-const goList = id => { jump(id); $("#list").scrollIntoView({ behavior: "smooth", block: "start" }); };
+const goList = id => jump(id);
 // What waiting costs: who pays + where the statement came from (model, mock, a human edit, or the written policy).
 function costMeta(g, go) {
   const ids = g.cost_evidence || [], src = g.cost_source;
@@ -403,18 +406,20 @@ function todayActs() {
   return S.data.groups.filter(g => !["none", "unlabelled", "other"].includes(g.key)).slice(0, 2);
 }
 
+// Each filter: is it active, and does message m pass it? (filtered() and jump() share these.)
+const FILTERS = {
+  q: [f => f.q.trim(), (m, f) => [m.id, m.text, m.route, m.label.code || ""].join(" ").toLowerCase().includes(f.q.trim().toLowerCase())],
+  sev: [f => f.sev.size, (m, f) => f.sev.has(m.label.severity || 0)],
+  route: [f => f.route, (m, f) => (m.route || "(none)") === f.route],
+  token: [f => f.token, m => m.token_flag],
+  human: [f => f.human, m => m.label.source === "human"],
+  check: [f => f.check, m => needsCheck(m)],
+  repeat: [f => f.repeat, m => m.same_rider_as.length],
+};
+const hiddenBy = m => Object.keys(FILTERS).filter(k => FILTERS[k][0](S.f) && !FILTERS[k][1](m, S.f));
 function filtered(ids) {
-  const f = S.f, q = f.q.trim().toLowerCase();
-  return ids.map(M).filter(m => {
-    if (q && ![m.id, m.text, m.route, m.label.code || ""].join(" ").toLowerCase().includes(q)) return false;
-    if (f.sev.size && !f.sev.has(m.label.severity || 0)) return false;
-    if (f.route && (m.route || "(none)") !== f.route) return false;
-    if (f.token && !m.token_flag) return false;
-    if (f.human && m.label.source !== "human") return false;
-    if (f.check && !needsCheck(m)) return false;
-    if (f.repeat && !m.same_rider_as.length) return false;
-    return true;
-  }).sort((a, b) => (a.label.severity || 9) - (b.label.severity || 9) || a.id.localeCompare(b.id));
+  return ids.map(M).filter(m => !hiddenBy(m).length)
+    .sort((a, b) => (a.label.severity || 9) - (b.label.severity || 9) || a.id.localeCompare(b.id));
 }
 
 /* ---------- report ---------- */
@@ -543,7 +548,7 @@ function renderList() {
   if (!ms.length) { put($("#list"), el("div", { class: "empty" }, "No messages match these filters.")); return; }
   put($("#list"), ...ms.map(m => el("button", {
     class: "item", role: "option", "aria-current": String(m.id === S.msg), "data-id": m.id,
-    onclick: () => { S.msg = m.id; renderList(); renderDetail(); }
+    onclick: () => { S.msg = m.id; renderList(); renderDetail(); setHash(); }
   },
     el("div", { class: "row" }, el("b", {}, m.id), pill(m.label.severity), codeTag(m.label.code),
       m.route || "no route", m.stars ? `· ${m.stars}★` : "",
@@ -588,14 +593,37 @@ function renderDetail() {
 }
 
 function select(key) { S.group = key; S.msg = null; renderNav(); renderGroupInfo(); renderList(); renderDetail(); }
+// Open exactly this ticket: leave Present, show a group that holds it, clear only the filters hiding it,
+// then bring the ticket (detail panel) into view and flash it.
+const CHECKS = { token: "fToken", human: "fHuman", check: "fCheck", repeat: "fRepeat" };
 function jump(id) {
+  const m = S.data && M(id);
+  if (!m) return;
+  if (!$("#present").hidden) setView("report");
   if (!groupOf(S.group).ids.includes(id)) S.group = "all";
-  S.msg = id; renderNav(); renderGroupInfo(); renderList(); renderDetail();
+  for (const k of hiddenBy(m)) {
+    if (k === "q") { S.f.q = ""; $("#q").value = ""; }
+    else if (k === "sev") S.f.sev.clear();
+    else if (k === "route") S.f.route = "";
+    else { S.f[k] = false; $("#" + CHECKS[k]).checked = false; }
+  }
+  S.msg = id; renderNav(); renderGroupInfo(); renderList(); renderDetail(); setHash();
+  const box = $("#detail"), item = document.querySelector(`.item[data-id="${id}"]`);
+  const behavior = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+  box.scrollTop = 0;
+  // Wide layout: the ticket panel is sticky beside the list, so centring the list item shows both.
+  // Narrow layout: the ticket sits under the list; put the item at the bottom of its own list, then show the ticket.
+  if (getComputedStyle(box).position === "sticky") item?.scrollIntoView({ behavior, block: "center" });
+  else { item?.scrollIntoView({ block: "nearest" }); box.scrollIntoView({ behavior, block: "start" }); }
+  box.classList.remove("flash"); void box.offsetWidth; box.classList.add("flash");
+  clearTimeout(jump.t); jump.t = setTimeout(() => box.classList.remove("flash"), 1000);
 }
+// Linkable ticket: #ticket=FB-001. replaceState so selecting tickets doesn't fill the back button.
+function setHash() { if (S.msg) history.replaceState(null, "", "#ticket=" + encodeURIComponent(S.msg)); }
 function move(step) {
   if (!S.list.length) return;
   const i = Math.max(0, Math.min(S.list.length - 1, S.list.indexOf(S.msg) + step));
-  S.msg = S.list[i]; renderList(); renderDetail();
+  S.msg = S.list[i]; renderList(); renderDetail(); setHash();
   document.querySelector(`.item[data-id="${S.msg}"]`)?.scrollIntoView({ block: "nearest" });
 }
 
@@ -648,7 +676,7 @@ function slides() {
     el("h1", {}, "Act on these this morning"),
     el("div", { class: "cols" }, acts.map(g => el("div", { class: "card" },
       el("h2", {}, g.title), el("p", { style: "color:var(--muted)" }, `${g.ids.length} messages · ${g.riders} riders · ${g.owner}`),
-      bullets(g.fix, 2), el("p", {}, el("b", {}, "If we wait:")), bullets(g.cost, 2), costMeta(g))))]);
+      bullets(g.fix, 2), el("p", {}, el("b", {}, "If we wait:")), bullets(g.cost, 2), costMeta(g, jump))))]);
   const w = d.working, asp = Object.entries(w.aspects).sort((a, b) => b[1].length - a[1].length);
   if (asp.length || w.drivers.length) out.push(() => [el("div", { class: "kick", style: "color:var(--ok)" }, "What's working"),
     el("h1", {}, "What riders praise, and who earned it"),
@@ -665,7 +693,7 @@ function slides() {
     el("h1", {}, "What waiting costs, and who pays"),
     el("table", {}, el("thead", {}, el("tr", {}, el("th", {}, "Problem"), el("th", {}, "Riders"), el("th", {}, "Cost of waiting a day"), el("th", {}, "Who pays"))),
       el("tbody", {}, deferred.map(g => el("tr", {}, el("td", {}, g.title), el("td", {}, g.riders),
-        el("td", {}, bullets(g.cost)), el("td", {}, costMeta(g)))))) ]);
+        el("td", {}, bullets(g.cost)), el("td", {}, costMeta(g, jump)))))) ]);
   return out;
 }
 function renderSlide() {
@@ -728,10 +756,14 @@ document.addEventListener("keydown", e => {
   else if (e.key === "p" || e.key === "P") setView("present");
 });
 
-load(null).then(() => {
+function openHash() {
   const m = location.hash.match(/^#present(?:-(\d+))?$/);  // #present or #present-3 opens that slide
+  const t = location.hash.match(/^#ticket=([^&]+)$/);       // #ticket=FB-001 opens that ticket
   if (m) { S.slide = (+m[1] || 1) - 1; setView("present"); }
-});
+  else if (t && S.data) jump(decodeURIComponent(t[1]));
+}
+load(null).then(openHash);
+window.addEventListener("hashchange", openHash);
 </script>
 </body>
 </html>
