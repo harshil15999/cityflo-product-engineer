@@ -45,6 +45,24 @@ assert all(m["evidence_found"] for m in r["messages"].values())
 r2 = server.triage(without({"FB-004", "FB-005", "FB-010"}))
 assert r2["escalation"]["key"] == "money", r2["escalation"]["key"]
 
+# "Why today": 3-5 short bullets built by code, citing ids, quoting only real rider evidence, never a rider id.
+why = r["escalation"]["why_today"]
+assert 3 <= len(why) <= 5, why
+text = " ".join(b["text"] for b in why)
+assert all(set(b["ids"]) <= set(r["escalation"]["ids"]) and all(i in b["text"] for i in b["ids"]) for b in why), why
+assert any("FB-005" in b["ids"] and "“cut across the lane divider to overtake at the school crossing near Powai”" in b["text"]
+           for b in why), why
+assert any({"FB-010", "FB-005"} <= set(b["ids"]) and "same rider" in b["text"] for b in why), why
+assert "HYD-KUK-FIN-05" in text and "MUM-AND-LBS-01" in text, text
+assert not re.search(r"R-1\d{4}", text) and "rider-" not in text, text
+for q in re.findall(r"“([^”]+)”", text):  # every quote is an exact substring of an escalated message
+    assert any(q in r["messages"][i]["text"] for i in r["escalation"]["ids"]), q
+why2 = r2["escalation"]["why_today"]
+text2 = " ".join(b["text"] for b in why2)
+assert 3 <= len(why2) <= 5, why2
+assert "out of pocket" in text2 or "payment" in text2.lower(), text2
+assert not re.search(r"R-1\d{4}", text2) and "rider-" not in text2, text2
+
 # A reused id with different text gets no mock label instead of a wrong one.
 r3 = server.triage(CSV.replace("driver was polite and waited", "brakes failed on the flyover and"))
 assert r3["messages"]["FB-001"]["label"]["code"] is None

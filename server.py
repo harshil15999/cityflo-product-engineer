@@ -493,6 +493,168 @@ def whats_working(msgs, by_rider):
             "drivers": drivers, "turned": turned, "mixed": mixed}
 
 
+# Words a rider uses when a problem keeps happening, most telling first. Only quoted if really in the text.
+ONGOING_MARKERS = ["the last few mornings", "last few days", "every day", "every morning", "every evening",
+                   "twice already", "since morning", "keeps", "again", "still"]
+SEV_TOPIC = {2: ("who are out of pocket", "riders out of pocket"), 3: ("about service failures", "a service failure"),
+             4: ("about minor issues", "a minor issue"), 5: ("with no issue", "no issue")}
+
+
+def _ist(created_at):
+    try:
+        t = datetime.fromisoformat(created_at)
+    except (TypeError, ValueError):
+        return None
+    return (t if t.tzinfo else t.replace(tzinfo=IST)).astimezone(IST)
+
+
+def _day(t):
+    return f"{t.day} {t:%b}"
+
+
+def _when_phrase(members, today):
+    """'all from this morning (23 Jun)', 'all from the evening of 22 Jun', or 'from 22 Jun to this morning (23 Jun)'."""
+    ts = sorted(t for t in (_ist(m["created_at"]) for m in members) if t)
+    if not ts:
+        return ""
+    win = {"M": "morning", "E": "evening"}
+
+    def one(day_ts):
+        ws = [w for w in ("M", "E") if any(commute_window(t.isoformat()) == w for t in day_ts)]
+        part = " and ".join(win[w] for w in ws)
+        d = day_ts[0].date()
+        if d == today:
+            return f"this {part} ({_day(day_ts[0])})" if part else f"today ({_day(day_ts[0])})"
+        return f"the {part} of {_day(day_ts[0])}" if part else _day(day_ts[0])
+
+    days = sorted({t.date() for t in ts})
+    if len(days) == 1:
+        return "all from " + one(ts)
+    first = [t for t in ts if t.date() == days[0]]
+    last = [t for t in ts if t.date() == days[-1]]
+    return f"from {one(first)} to {one(last)}"
+
+
+def _quote(m):
+    """The ticket's primary evidence, only if it is an exact substring of the rider's text."""
+    for q in (m["label"].get("evidence"), m["model_label"].get("evidence")):
+        if q and q in m["text"]:
+            return q
+    return ""
+
+
+def _ongoing_quote(cluster):
+    """The most telling 'it keeps happening' words in these tickets: the evidence quote that contains them, else the words."""
+    for marker in ONGOING_MARKERS:
+        for m in cluster:
+            quotes = [e.get("evidence", "") for e in m.get("events", [])] + [_quote(m)]
+            for q in quotes:
+                if q and q in m["text"] and marker in q.lower():
+                    return q
+            i = m["text"].lower().find(marker)
+            if i >= 0:
+                return m["text"][i:i + len(marker)]
+    return ""
+
+
+def _routes_phrase(members):
+    by_route = defaultdict(list)
+    for m in members:
+        if m["route"]:
+            by_route[m["route"]].append(m["id"])
+    parts = [f"{r} ({', '.join(ids)})" for r, ids in sorted(by_route.items())]
+    return (" and ".join(parts) if len(parts) <= 3 else f"{len(parts)} routes"), [i for ids in by_route.values() for i in ids]
+
+
+def why_today(esc, members, all_msgs):
+    """Why this escalation goes upstairs today: 3-5 short, factual bullets built by plain code from the batch.
+    Each bullet is {text, ids}; ids are the ticket ids named in the text. Quotes are exact rider evidence only."""
+    if not esc or not members:
+        return []
+    days = [t.date() for t in (_ist(m["created_at"]) for m in all_msgs) if t]
+    today = max(days) if days else None
+    members = sorted(members, key=lambda m: m["created_at"])
+    safety = esc["key"] == "safety"
+    n, nr = len(members), riders(members)
+    routes = sorted({m["route"] for m in members if m["route"]})
+    codes = [m["label"].get("code") or "" for m in members]
+    if safety:
+        topic = "dangerous driving" if codes and all(c.startswith("SAF-DRV") for c in codes) else "risk of physical harm"
+    else:
+        topic, sev_means = SEV_TOPIC.get(esc.get("severity"), ("about " + esc["title"].lower(), esc["title"].lower()))
+    cities = sorted({r.split("-")[0] for r in routes if "-" in r})
+    where = f" on {len(routes)} route{'s' if len(routes) != 1 else ''}" if routes else ""
+    if not safety and len(cities) > 1:
+        where += f" in {len(cities)} cities"
+    when = _when_phrase(members, today)
+    head = (f"{n} report{'s' if n != 1 else ''} from {nr} rider{'s' if nr != 1 else ''} "
+            + (f"about {topic}" if safety else f"{topic} ({esc['title']})") + where + (", " + when if when else "") + ".")
+    out = [{"text": head, "ids": []}]
+
+    if not safety:
+        out.append({"text": f"No safety report in this batch, so the slot goes to the most severe group: severity "
+                            f"{esc.get('severity')}, {sev_means}, and among those the one hitting the most riders.", "ids": []})
+
+    # Public at risk: TP modifier, or the event code says the public was affected.
+    public = [m for m in members if "TP" in m["modifiers"] or any(e["code"][5] == "P" for e in m.get("events", []))]
+    for m in public[:1]:
+        q = _quote(m)
+        school = any(e["code"][3] == "S" for e in m.get("events", []))
+        lead = "Children and the public were put at risk, in a school zone" if school else "People outside the bus were put at risk"
+        out.append({"text": f"{lead}: “{q}” ({m['id']})." if q else f"{lead} ({m['id']}).", "ids": [m["id"]]})
+
+    # Repeating: the same rider wrote more than once about it, or says it keeps happening.
+    seen, clusters = set(), []
+    for m in members:
+        if m["id"] in seen:
+            continue
+        c = [x for x in members if x["id"] == m["id"] or x["id"] in m["same_rider_as"]]
+        seen |= {x["id"] for x in c}
+        if len(c) > 1:
+            clusters.append(c)
+    lead = "It is repeating" if safety else "It is not resolved"
+    for c in clusters[:1]:
+        q = _ongoing_quote([x for x in c if "ON" in x["modifiers"]])
+        seq = " and again in ".join(x["id"] for x in c)
+        out.append({"text": f"{lead}: the same rider reported it in {seq}" + (f", and says “{q}”." if q else "."),
+                    "ids": [x["id"] for x in c]})
+    if not clusters:
+        on = [m for m in members if "ON" in m["modifiers"]]
+        q = _ongoing_quote(on)
+        if on and q:
+            src = next(m for m in on if q in m["text"])
+            out.append({"text": f"The rider says it is not a one-off: “{q}” ({src['id']}).", "ids": [src["id"]]})
+
+    # Across routes: more than one bus, so not a fix on one route.
+    if len(routes) >= 2:
+        phrase, rids = _routes_phrase(members)
+        if safety and topic == "dangerous driving":
+            text = (f"It is not one bad driver: separate reports on {phrase} point to a gap in driver monitoring "
+                    "that only leadership can fund.")
+        else:
+            text = f"It is not one route: reports come from {phrase}."
+        out.append({"text": text, "ids": rids if len(routes) <= 3 else []})
+
+    # At least three bullets: add what a rider actually wrote, if nothing above quotes them.
+    if len(out) < 2:
+        m = next((m for m in members if _quote(m)), None)
+        if m:
+            out.append({"text": f"In the rider's words: “{_quote(m)}” ({m['id']}).", "ids": [m["id"]]})
+
+    # The cost of waiting a day.
+    if safety:
+        wins = {commute_window(m["created_at"]) for m in members} - {"Z"}
+        slot = {"M": "tomorrow morning", "E": "tomorrow evening"}.get(next(iter(wins)), "tomorrow") if len(wins) == 1 else "tomorrow"
+        out.append({"text": f"If it waits until tomorrow, the same buses run the same routes {slot} with no check in place.", "ids": []})
+    else:
+        sents = [s.strip() for s in (esc.get("cost") or "").replace("\n", " ").split(". ") if s.strip()]
+        pick = next((s for s in sents if not s.lower().startswith(("no ", "not ", "nobody "))), sents[0] if sents else "")
+        if pick:
+            pick = pick if pick.endswith((".", "!", "?")) else pick + "."
+            out.append({"text": "If it waits a day: " + (pick[0].lower() + pick[1:] if pick[1:2].islower() else pick), "ids": []})
+    return out[:4] + out[-1:] if len(out) > 5 else out
+
+
 def triage(csv_text):
     rows = parse_csv(csv_text)
     batch = hashlib.sha256(csv_text.encode()).hexdigest()[:12]
@@ -619,6 +781,9 @@ def triage(csv_text):
         o = cost_overrides.get(g["key"])
         if o:
             g.update(cost=o["cost"], who_pays=o["who_pays"], cost_source="human", cost_note=o["note"], cost_at=o["at"])
+
+    if esc:  # after the cost is final, so the non-safety cost bullet matches what the page shows
+        esc["why_today"] = why_today(esc, [by_id[i] for i in esc["ids"]], msgs)
 
     return {"mode": "live" if LIVE else "mock", "model": MODEL, "batch": batch,
             "rule": RULE, "token_rule": TOKEN_RULE, "escalation": esc, "groups": deferred,

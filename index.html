@@ -236,6 +236,10 @@ details.more > summary .meta { font-weight:400; font-size:13px; }
 .pok{color:var(--ok);background:var(--okbg)}
 .bul { margin:2px 0 0; padding-left:1.15em; display:grid; gap:3px; }
 .tcard .bul { margin-top:8px; font-size:15.5px; }
+details.rule { margin-top:6px; font-size:13px; color:var(--muted); }
+details.rule > summary { cursor:pointer; font-weight:600; }
+details.rule .bul { font-size:13px; }
+.why-today li { overflow-wrap:anywhere; }
 .costmeta { display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin-top:6px; }
 .tag.src { background:transparent; border-style:dashed; color:var(--muted); font-weight:500; white-space:normal; }
 .costmeta .lbl { color:var(--muted); font-size:13px; }
@@ -512,6 +516,18 @@ const aspectName = a => a === "ac" ? "AC" : a[0].toUpperCase() + a.slice(1);
 const when = t => new Date(t).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
 const idLinks = (ids, go) => ids.map((id, i) => [i ? ", " : "", go ? el("button", { type: "button", onclick: () => go(id) }, id) : id]);
 const goList = id => jump(id);
+// "Why today": short bullets built by the server from the batch, each {text, ids}. The ticket ids named in the
+// text become jump links; everything else stays plain text (textContent, never innerHTML).
+function whyLine(b, go) {
+  const ids = (b.ids || []).filter(Boolean).sort((x, y) => y.length - x.length);
+  if (!go || !ids.length) return b.text;
+  const re = new RegExp("(" + ids.map(i => i.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")(?![\\w-])");
+  return b.text.split(re).map((part, i) => i % 2 ? el("button", { type: "button", onclick: () => go(part) }, part) : part);
+}
+const whyList = (g, go, max) => (g.why_today || []).length
+  ? el("ul", { class: "bul why-today" + (go ? " links" : "") }, g.why_today.slice(0, max || g.why_today.length).map(b => el("li", {}, whyLine(b, go))))
+  : bullets(S.data.rule);
+const ruleNote = () => el("details", { class: "rule" }, el("summary", {}, "The rule that picked it"), bullets(S.data.rule));
 // What waiting costs: who pays + where the statement came from (model, mock, a human edit, or the written policy).
 function costMeta(g, go) {
   const ids = g.cost_evidence || [], src = g.cost_source;
@@ -644,7 +660,7 @@ function todayCard(g, key, kicker) {
     el("h3", {}, g.title),
     el("div", { class: "who" }, `${g.ids.length} messages · ${g.riders} riders · owner: ${g.owner || "unassigned"}`,
       (g.also_ids || []).length ? ` · +${g.also_ids.length} also mentioned` : ""),
-    bullets(g.fix, 2));
+    key === "esc" && (g.why_today || []).length ? [el("div", { class: "kicker", style: "margin-top:10px" }, "Why today"), whyList(g, null, 2)] : bullets(g.fix, 2));
 }
 
 function renderGood() {
@@ -746,7 +762,7 @@ function renderGroupInfo() {
     (g.also_ids || []).length ? el("div", { class: "meta links also-in" }, `Also mentioned in ${g.also_ids.length} other ticket${g.also_ids.length > 1 ? "s" : ""}: `,
       idLinks(g.also_ids, jump), " (secondary code; not counted above)") : null,
     el("dl", {},
-      isEsc ? [el("dt", {}, "Why this one"), el("dd", {}, bullets(S.data.rule))] : null,
+      isEsc ? [el("dt", {}, "Why today"), el("dd", {}, whyList(g, jump), ruleNote())] : null,
       el("dt", {}, "Owner"), el("dd", {}, (g.owner || "Unassigned") + " (confirm with Meera)"),
       el("dt", {}, "Fix"), el("dd", {}, bullets(g.fix)),
       g.asks ? [el("dt", {}, "Ask leadership"), el("dd", {}, el("ol", {}, g.asks.map(a => el("li", {}, a))))] : null,
@@ -1142,13 +1158,15 @@ function move(step) {
 function renderPrint() {
   const d = S.data, acts = todayActs();
   const sec = (g, head) => [el("h2", {}, head + g.title),
-    el("dl", {}, el("dt", {}, "Owner"), el("dd", {}, g.owner || "Unassigned"), el("dt", {}, "Fix"), el("dd", {}, bullets(g.fix)),
+    el("dl", {}, g === d.escalation ? [el("dt", {}, "Why today"), el("dd", {}, whyList(g),
+        el("div", { style: "font-size:9pt; color:#555; margin-top:2pt" }, "The rule that picked it: ", d.rule))] : null,
+      el("dt", {}, "Owner"), el("dd", {}, g.owner || "Unassigned"), el("dt", {}, "Fix"), el("dd", {}, bullets(g.fix)),
       g.asks ? [el("dt", {}, "Ask leadership"), el("dd", {}, g.asks.join("; "))] : null,
       el("dt", {}, "Cost"), el("dd", {}, bullets(g.cost), costMeta(g)), el("dt", {}, "Risk"), el("dd", {}, bullets(g.risk))),
     g.ids.map(id => { const m = M(id); return el("div", { class: "pm" }, el("b", {}, `${m.id} · S${m.label.severity || "?"} · ${codeText(m.label)}${evs(m).length ? " · " + evs(m).map(e => e.dashed).join(" +") : ""} · ${m.route || "no route"}`), el("div", {}, `"${m.text}"`)); })];
   put($("#print"), 
     el("h1", {}, "Rider feedback triage"), el("div", {}, `Batch ${d.batch} · ${dateRange(Object.values(d.messages))} · ${d.mode} mode`),
-    el("div", {}, el("b", {}, "Rule: "), bullets(d.rule)),
+    d.escalation ? null : el("div", {}, el("b", {}, "Rule: "), bullets(d.rule)),
     d.escalation ? sec(d.escalation, "Escalate at 11: ") : el("p", {}, "Nothing to escalate."),
     acts.map(g => sec(g, "Act today: ")),
     printGood(),
@@ -1180,7 +1198,10 @@ function slides() {
       el("div", {}, el("b", {}, deferred.length), el("span", {}, "groups deferred")))]);
   if (e) out.push(() => [el("div", { class: "kick", style: "color:var(--s1)" }, "Escalate today"),
     el("h1", {}, e.title),
-    el("div", { class: "quotes" }, e.ids.map(id => { const m = M(id);
+    (e.why_today || []).length ? [el("p", { style: "margin:0 0 .1em; font-weight:700" }, "Why today"), whyList(e, jump)] : null,
+    // Quotes already in "Why today" are not repeated.
+    el("div", { class: "quotes" }, e.ids.filter(id => { const m = M(id), q = m.evidence_found ? m.model_label.evidence : m.text;
+      return !(e.why_today || []).some(w => w.text.includes("“" + q + "”")); }).map(id => { const m = M(id);
       return el("blockquote", {}, "“" + (m.evidence_found ? m.model_label.evidence : m.text) + "”",
         el("cite", {}, `${m.id} · ${m.route || "no route"}${m.stars ? " · " + m.stars + "★" : ""}${m.same_rider_as.length ? " · same rider as " + m.same_rider_as.join(", ") : ""}`)); })),
     e.asks ? [el("p", { style: "margin:.3em 0 .1em; font-weight:700" }, "What we ask leadership for, in order"),

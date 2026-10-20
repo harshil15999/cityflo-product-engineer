@@ -38,6 +38,7 @@ The model (or the mock data) decides two things: per message, a code, a severity
 
 Plain code in `server.py` decides everything else:
 - Any safety code (`SAF-*`) is forced to severity 1, whatever the model said.
+- "Why today" on the escalation (3 to 5 bullets: how many reports, riders and routes, who was put at risk, whether it is repeating, what a day's wait costs) is built by code from the batch, citing ticket ids and quoting only exact rider evidence; the generic escalation rule sits under it as "The rule that picked it".
 - All severity 1 messages go upstairs together as one safety escalation. If there is none, the slot goes to the most severe group, and among equals the one affecting the most riders.
 - The groups, the owner and fix for each, and rider counts (anonymous reviews count as one rider each).
 - The page flags a label whose evidence quote is not actually in the message, shows a praise quote only if it is really in the message, and drops any cost evidence id that is not in that group.
