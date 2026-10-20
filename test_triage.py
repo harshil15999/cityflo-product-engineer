@@ -256,4 +256,13 @@ for bad, msg in (({"code": "OPS-LATE", "secondary": ["SAF-OTHER"]}, "safety code
     except ValueError as e:
         assert msg in str(e), (bad, e)
 
+# Usage analytics: off without ANALYTICS_URL, and only a local http(s) GoatCounter is accepted.
+import os
+os.environ.pop("ANALYTICS_URL", None)
+assert server.analytics_url() is None
+assert server.analytics_url("http://127.0.0.1:8081/") == "http://127.0.0.1:8081"
+for bad in ("https://stats.example.com", "http://10.0.0.5:8081", "ftp://127.0.0.1", "http://127.0.0.1:8081/x?a=1",
+            "http://user:pw@127.0.0.1:8081", "http://127.0.0.1.evil.com", "http://127.0.0.1:99999"):
+    assert server.analytics_url(bad) is None, bad
+
 print("all checks passed")

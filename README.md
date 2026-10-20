@@ -66,6 +66,34 @@ Each group lists "also mentioned" tickets (`also_ids`): messages grouped elsewhe
 
 The submitted demo runs in mock mode: the labels in `data/labels.json` were prepared for this batch, not produced by a model call at demo time. Live mode is implemented and uses the same prompt and the same rules. The exact prompt is visible on the page under "Prompt" at the bottom (system prompt plus the user message, with rider ids already removed), in both modes.
 
+## Usage analytics (optional)
+
+To learn which parts of the page Meera actually uses (and which could go), the page can count feature use in [GoatCounter](https://github.com/arp242/goatcounter): an open-source tool that runs as one self-hosted binary with SQLite and uses no cookies. Analytics are off unless `ANALYTICS_URL` is set, and the page works the same when GoatCounter isn't running.
+
+**What is sent:** feature names only, plus one pageview called `/dashboard`. Examples: `feature/kpi/today`, `feature/nav/group/money`, `feature/today-card/escalate`, `feature/filter/severity` (also `route`, `token`, `human`, `check`, `repeat`), `feature/search/used`, `feature/ticket/open/list`, `feature/ticket/open/link`, `feature/ticket/open/working`, `feature/ticket/open/same-rider`, `feature/ticket/open/slide`, `feature/ticket/open/deeplink`, `feature/override/open`, `feature/override/save`, `feature/cost/open`, `feature/cost/save`, `feature/working/aspect`, `feature/nav/open-group`, `feature/view/present`, `feature/view/report`, `feature/present/next`, `feature/present/back`, `feature/present/fullscreen`, `feature/present/exit`, `feature/print`, `feature/theme`, `feature/batch/open`, `feature/batch/file`, `feature/batch/run`, `feature/batch/reset`, `feature/dialog/prompt`, `feature/dialog/rules`, `feature/dialog/close/<dialog>`, and keyboard shortcuts as `feature/key/search`, `move`, `present`, `slide`, `fullscreen`, `exit`.
+
+**What is never sent:** rider text or quotes, ticket ids, masked rider handles, the search text (only that search was used, once per visit to the box), notes typed into forms, cost text, the URL hash (`#ticket=…`) or query string, or the referrer. The automatic pageview is turned off (`no_onload`) and the query string is removed before each request. `count.js` loads from your own GoatCounter, never a CDN. GoatCounter itself also records browser, OS, screen size and country (none for 127.0.0.1); it doesn't store IP addresses or set cookies. The server accepts `ANALYTICS_URL` only as `http(s)://127.0.0.1:<port>` or `http(s)://localhost:<port>`; anything else is ignored with a warning.
+
+Run GoatCounter locally (tested with v2.7.0, Linux x86-64). The `analytics/` folder is git-ignored.
+
+```
+mkdir -p analytics && cd analytics
+curl -LO https://github.com/arp242/goatcounter/releases/download/v2.7.0/goatcounter-v2.7.0-linux-amd64.gz
+sha256sum goatcounter-v2.7.0-linux-amd64.gz   # must be 98d221cb9c8ef2bf76d8daa9cca647839f8d8b0bb5bc7400ff9337c5da834511 (GitHub's published digest)
+gunzip -c goatcounter-v2.7.0-linux-amd64.gz > goatcounter && chmod +x goatcounter
+./goatcounter db create site -createdb -db sqlite+./goatcounter.sqlite3 \
+    -vhost 127.0.0.1 -user.email you@example.com -user.password 'pick-a-password'
+./goatcounter serve -db sqlite+./goatcounter.sqlite3 -listen 127.0.0.1:8081 -tls http
+```
+
+Then, in another terminal from the project folder:
+
+```
+ANALYTICS_URL=http://127.0.0.1:8081 python3 server.py
+```
+
+Use the dashboard at http://127.0.0.1:8000, then open http://127.0.0.1:8081 and log in with the email and password above. Each `feature/...` name appears in the Pages list (stored as an event); `/dashboard` is the pageview. Hits are saved every 10 seconds. GoatCounter counts visitors, not clicks: clicking the same feature five times in one visit counts once, so each number means "visits that used this feature". Features that never appear after a few weeks are candidates to remove. The site only answers on the `-vhost` name, so open it as `127.0.0.1`, not `localhost`. If GoatCounter is stopped, the browser console shows one failed `count.js` request and nothing else changes.
+
 ## Running costs
 
 - Mock mode costs nothing: a standard-library Python server, no database, no hosting needed. For the demo it runs on a laptop.

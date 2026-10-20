@@ -954,6 +954,86 @@ function openHash() {
 }
 load(null).then(openHash);
 window.addEventListener("hashchange", openHash);
+
+/* ---------- usage analytics (optional, self-hosted GoatCounter) ----------
+   Off unless the server sets ANALYTICS_URL. Sends feature names only, e.g. "feature/kpi/today":
+   never rider text, ticket ids, search text, notes, costs or the URL hash. Never blocks the page. */
+(() => {
+  const last = {};
+  const slug = s => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 32) || "other";
+  function track(name, pageview) {
+    const gc = window.goatcounter, now = Date.now();
+    if (!gc || typeof gc.count !== "function" || now - (last[name] || 0) < 400) return;  // off, or a double fire
+    last[name] = now;
+    try { gc.count({ path: name, title: pageview ? "Dashboard" : name, referrer: "", event: !pageview }); } catch (e) {}
+  }
+  const CLICKS = [  // [selector, feature name or fn(element)]; first match wins
+    ["#vPresent", "feature/view/present"], ["#vReport", "feature/view/report"],
+    ["#bPrint", "feature/print"], ["#bTheme", "feature/theme"], ["#bBatch", "feature/batch/open"],
+    ["#run", "feature/batch/run"], ["#reset", "feature/batch/reset"],
+    ["#bPrompt", "feature/dialog/prompt"], ["#bRules", "feature/dialog/rules"],
+    ["#pPrev", "feature/present/back"], ["#pNext", "feature/present/next"],
+    ["#pFull", "feature/present/fullscreen"], ["#pExit", "feature/present/exit"],
+    [".kpi[data-key]", b => "feature/kpi/" + slug(b.dataset.key)],
+    [".tcard", b => "feature/today-card/" + (b.classList.contains("esc") ? "escalate" : "act")],
+    ["#groups button", () => setTimeout(() => track("feature/nav/group/" + slug(S.group)))],  // after select() ran
+    ["#sevChips .chip", "feature/filter/severity"],
+    [".item", "feature/ticket/open/list"],
+    ["#good .aspect", "feature/working/aspect"],
+    ["#good button", "feature/ticket/open/working"],
+    ["#ginfo .btn[type=button]", "feature/nav/open-group"],
+    ["#ginfo .links button", "feature/ticket/open/link"],
+    ["#detail .links button", "feature/ticket/open/same-rider"],
+    ["#slide button", "feature/ticket/open/slide"],
+    ["#detail details:not(:has(.cov)) > summary", "feature/override/open"],
+    ["details:has(.cov) > summary", "feature/cost/open"],
+    ["dialog form[method=dialog] button", b => "feature/dialog/close/" + slug(b.closest("dialog").id)],
+  ];
+  const fire = (rules, t) => {
+    for (const [sel, what] of rules) {
+      const n = t.closest && t.closest(sel);
+      if (!n) continue;
+      const name = typeof what === "function" ? what(n) : what;
+      if (typeof name === "string") track(name);
+      return;
+    }
+  };
+  document.addEventListener("click", e => fire(CLICKS, e.target), true);
+  document.addEventListener("change", e => fire([["#route", "feature/filter/route"], ["#fToken", "feature/filter/token"],
+    ["#fHuman", "feature/filter/human"], ["#fCheck", "feature/filter/check"], ["#fRepeat", "feature/filter/repeat"],
+    ["#file", "feature/batch/file"]], e.target), true);
+  document.addEventListener("submit", e => fire([["form.ov", "feature/override/save"], ["form.cov", "feature/cost/save"]], e.target), true);
+  // Search: one event per focus session once something is typed; the text itself is never read.
+  let searched = false;
+  document.addEventListener("focusin", e => { if (e.target.id === "q") searched = false; });
+  document.addEventListener("input", e => { if (e.target.id === "q" && !searched) { searched = true; track("feature/search/used"); } });
+  document.addEventListener("keydown", e => {
+    if (!S.data || document.querySelector("dialog[open]") || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    const k = e.key, present = !$("#present").hidden;
+    const name = present ? (["ArrowRight", "ArrowLeft", "PageDown", "PageUp", " "].includes(k) ? "slide" : /^[fF]$/.test(k) ? "fullscreen" : k === "Escape" ? "exit" : null)
+      : k === "/" ? "search" : ["ArrowDown", "ArrowUp", "j", "k"].includes(k) ? "move" : /^[pP]$/.test(k) ? "present" : null;
+    if (name) track("feature/key/" + name);
+  }, true);
+  const deeplink = () => { if (/^#ticket=/.test(location.hash)) track("feature/ticket/open/deeplink"); };
+  deeplink();
+  // Load count.js from the local GoatCounter only; no automatic pageview (it would send the path and query).
+  fetch("/api/config").then(r => r.ok ? r.json() : {}).then(c => {
+    const url = c && c.analytics_url;
+    if (!url || !/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(url)) return;
+    const s = document.createElement("script");
+    s.async = true; s.src = url + "/count.js"; s.dataset.goatcounter = url + "/count";
+    s.dataset.goatcounterSettings = JSON.stringify({ no_onload: true, no_events: true, allow_local: true });
+    s.onload = () => {
+      const gc = window.goatcounter, get = gc && gc.get_data;
+      if (typeof get !== "function") return;
+      gc.get_data = v => { const d = get(v); delete d.q; d.r = ""; return d; };  // never send the query string or referrer
+      track("/dashboard", true);
+      deeplink();
+    };
+    s.onerror = () => {};
+    document.head.append(s);
+  }).catch(() => {});
+})();
 </script>
 </body>
 </html>
